@@ -1,0 +1,1841 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta content="width=device-width, initial-scale=1" name="viewport" />
+  <title>Admin Panel</title>
+  <link rel="stylesheet" href="styles.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.23/jspdf.plugin.autotable.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+</head>
+  
+<body>
+  <div class="content-wrapper">
+    <nav class="sidebar">
+      <div class="sidebar-wrapper">
+      <div class="sidebar-header">
+        <h2>Administrator</h2>
+      </div>
+      <div class="sidebar-account">
+        <p id="userName">Memuat...</p>
+        <small id="userEmail">Memuat...</small>
+      </div>
+      <div class="sidebar-menu">
+        <div class="sidebar-menu-header">
+          <h4><i class="fa-solid fa-circle-info"></i> Informasi</h4>
+        </div>
+          <ul>
+            <li><a href="#dashboard" class="nav-link active"><i class="fas fa-tachometer-alt"></i> Dashboard</a></li>
+            <li><a href="#monitoring" class="nav-link"><i class="fas fa-truck"></i> Informasi Perjalanan</a></li>
+            <li><a href="#finance" class="nav-link"><i class="fas fa-wallet"></i> Informasi Keuangan</a></li>
+          </ul>
+        <div class="sidebar-menu-header">
+          <h4><i class="fa-solid fa-briefcase"></i> Manajemen</h4>
+        </div>
+          <ul>
+            <li><a href="#users" class="nav-link"><i class="fas fa-users"></i> Manajemen Pengguna</a></li>
+            <li><a href="#routes" class="nav-link"><i class="fas fa-route"></i> Manajemen Rute</a></li>
+            <li><a href="#vehicles" class="nav-link"><i class="fas fa-car"></i> Manajemen Kendaraan</a></li>
+          </ul>
+        <div class="sidebar-menu-header">
+          <h4><i class="fa-solid fa-bars-progress"></i> Tambah</h4>
+        </div>
+          <ul>
+            <li><a href="#addusers" class="nav-link"><i class="fas fa-user-plus"></i> Tambah Pengguna</a></li>
+            <li><a href="#addrutes" class="nav-link"><i class="fa-solid fa-map-location-dot"></i> Tambah Rute</a></li>
+            <li><a href="#addvehicles" class="nav-link"><i class="fas fa-car-side"></i> Tambah Kendaraan</a></li>
+          </ul>
+        <div class="sidebar-menu-header">
+          <h4><i class="fa-solid fa-book"></i> Dokumentasi</h4>
+        </div>
+          <ul>
+            <li><a href="#performance" class="nav-link"><i class="fas fa-chart-line"></i> Kinerja Role</a></li>
+            <li><a href="#documentation" class="nav-link"><i class="fas fa-file-alt"></i> Dokumentasi Laporan</a></li>
+          </ul>
+        <div class="sidebar-menu-header">
+          <h4><i class="fa-solid fa-gear"></i> Sistem</h4>
+        </div>
+          <ul>
+            <li id="lockdown-menu-item" style="display: none;"><a href="#lockdown" class="nav-link"><i class="fas fa-lock"></i> Protokol Lockdown</a></li>
+            <li id="backup-menu-item" style="display: none;"><a href="#backup" class="nav-link"><i class="fas fa-database"></i> Pencadangan Data</a></li>
+            <li><a href="#tampilan" class="nav-link"><i class="fas fa-palette"></i> Tampilan</a></li>
+          </ul>
+        <div class="sidebar-menu-header">
+          <h4><i class="fa-solid fa-thumbs-up"></i> Sosial</h4>
+        </div>
+          <ul>
+            <li><a href="forum.html"><i class="fa-solid fa-comments"></i> Forum Diskusi</a></li>
+          </ul>
+      </div>
+      <div class="sidebar-footer">
+        <button id="logoutBtn" class="logout-button"><i class="fa-solid fa-right-from-bracket"></i> Keluar</button>
+        <p>V.3.0.4</p>
+      </div>
+        </div>
+    </nav>
+
+    <main class="main-content">
+      <div class="main-wrapper">
+      <header class="main-header">
+        <button class="hamburger-menu" id="hamburger-menu" aria-label="Toggle sidebar" style="padding: 1rem; width: 4rem;">
+                <i class="fas fa-bars"></i>
+            </button>
+        <div class="main-header-content">
+          <h1 id="pageTitle"><i class="fas fa-tachometer-alt"></i> Dashboard</h1>
+          <p id="pageSubtitle">Ringkasan umum dan statistik sistem.</p>
+        </div>
+        <div class="main-header-menu">
+        <ul>
+          <li><a href="forum.html"><i class="fa-solid fa-comments"></i> Forum Diskusi</a></li>
+          <li><a href="#"><i class="fa-solid fa-user"></i> Tim IT</a></li>
+          <li><a href="#"><i class="fa-solid fa-face-smile"></i> Pusat Bantuan</a></li>
+        </ul>
+          </div>
+      </header>
+    <div class="content-container">
+      <div id="page-dashboard" class="page active">
+        <div class="dashboard-grid">
+            <div class="stat-card">
+                <h3>Total Perjalanan</h3>
+                <p id="totalTrips">0</p>
+            </div>
+            <div class="stat-card">
+                <h3>Perjalanan Bulan Ini</h3>
+                <p id="tripsThisMonth">0</p>
+            </div>
+            <div class="stat-card">
+                <h3>Perjalanan Bulan Lalu</h3>
+                <p id="tripsLastMonth">0</p>
+            </div>
+            <div class="stat-card">
+                <h3>Pengguna Online</h3>
+                <p id="onlineUsers">0</p>
+            </div>
+            <div class="stat-card">
+                <h3>Total Pengguna</h3>
+                <p id="totalUsers">0</p>
+            </div>
+            <div class="stat-card">
+                <h3>Total Rute</h3>
+                <p id="totalRoutes">0</p>
+            </div>
+            <div class="stat-card">
+                <h3>Total Kendaraan</h3>
+                <p id="totalVehicles">0</p>
+            </div>
+            <div class="stat-card">
+                <h3>Kendaraan Aktif Hari Ini</h3>
+                <p id="activeVehiclesToday">0</p>
+            </div>
+        </div>
+        <div class="card" style="margin-top: 1rem;">
+            <h2 class="card-header">Aktivitas Perjalanan Terkini</h2>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table id="recentActivityTable">
+                        <thead>
+                            <tr>
+                                <th>Deskripsi</th>
+                                <th>Uang Jalan</th>
+                                <th>Tanggal</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody id="recentActivityList">
+                            <tr><td colspan="4">Memuat aktivitas...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div id="activity-pagination-controls" style="display: none; margin-top: 1rem; text-align: center; gap: 1rem;">
+                    <button id="prevActivityBtn"><i class="fa-solid fa-arrow-left"></i> Sebelumnya</button>
+                    <span id="activityPageInfo" style="color: var(--light-lavender); font-size: 1.5rem; font-weight: 500; margin: 0 1rem; padding: 0;"></span>
+                    <button id="nextActivityBtn"><i class="fa-solid fa-arrow-right"></i> Berikutnya</button>
+                </div>
+            </div>
+        </div>
+      </div>
+
+      <div id="page-monitoring" class="page">
+        <section class="card">
+          <h2 class="card-header">Daftar Perjalanan</h2>
+          <div class="card-body">
+            <div class="table-controls">
+              <div class="form-group">
+                <label>Filter Status</label>
+                <select id="filterTripStatus">
+                  <option value="all">Semua</option>
+                  <option value="submitted">Menunggu</option>
+                  <option value="approved">Disetujui</option>
+                  <option value="delivering">Dalam Perjalanan</option>
+                  <option value="arriving_soon">Hampir Sampai</option>
+                  <option value="rejected">Ditolak</option>
+                  <option value="arrived">Selesai</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label>Cari Supir / Rute</label>
+                <input type="text" id="searchTrip" placeholder="Ketikkan sesuatu"/>
+              </div>
+            </div>
+            <div class="table-responsive">
+              <table id="tripTable">
+                <thead>
+                  <tr>
+                    <th>Trip ID</th>
+                    <th>Rute</th>
+                    <th>Supir</th>
+                    <th>No. Kendaraan</th>
+                    <th>Muatan</th>
+                    <th>Uang Jalan</th>
+                    <th>Tanggal</th>
+                    <th>Status</th>
+                    <th>Aksi</th>
+                  </tr>
+                </thead>
+                <tbody id="tripList">
+                  <tr><td colspan="9">Memuat data...</td></tr>
+                </tbody>
+              </table>
+            </div>
+            <div id="pagination-controls" style="display: none; margin-top: 1rem; text-align: center; gap: 1rem;">
+              <button id="prevBtn"><i class="fa-solid fa-arrow-left"></i> Sebelumnya</button>
+              <span id="pageInfo" style="color: var(--light-lavender); font-size: 1.5rem; font-weight: 500; margin: 0 1rem; padding: 0;"></span>
+              <button id="nextBtn"><i class="fa-solid fa-arrow-right"></i> Berikutnya</button>
+            </div>
+          </div>
+        </section>
+      </div>
+
+      <div id="page-finance" class="page">
+        <section class="card">
+          <h2 class="card-header">Data Keuangan Perjalanan</h2>
+          <div class="card-body">
+            <div class="table-controls" style="grid-template-columns: 1fr;">
+              <div class="form-group">
+                <label>Cari Supir / Rute / Trip ID</label>
+                <input type="text" id="searchFinance" placeholder="Ketikkan sesuatu..." />
+              </div>
+            </div>
+            <div class="stat-card" style="margin-bottom: 1rem; text-align: left; padding: 1.5rem;">
+                <h3>Total Pengeluaran</h3>
+                <p id="totalUangJalan" style="font-size: 2.5rem;">Rp 0</p>
+            </div>
+            <div class="table-responsive">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Trip ID</th>
+                    <th>Rute</th>
+                    <th>Supir</th>
+                    <th>Tanggal</th>
+                    <th>Uang Jalan</th>
+                  </tr>
+                </thead>
+                <tbody id="financeList">
+                  <tr><td colspan="5">Memuat data keuangan...</td></tr>
+                </tbody>
+              </table>
+            </div>
+            <div id="finance-pagination-controls" style="display: none; margin-top: 1.5rem; text-align: center; gap: 1rem;">
+              <button id="prevFinanceBtn"><i class="fa-solid fa-arrow-left"></i> Sebelumnya</button>
+              <span id="financePageInfo" style="color: var(--light-lavender); font-size: 1.5rem; font-weight: 500; margin: 0 1rem; padding: 0;"></span>
+              <button id="nextFinanceBtn"><i class="fa-solid fa-arrow-right"></i> Berikutnya</button>
+            </div>
+          </div>
+        </section>
+      </div>
+      
+      <div id="page-users" class="page">
+        <section class="card">
+          <h2 class="card-header">Daftar Semua Pengguna</h2>
+          <div class="card-body">
+            <div class="table-controls">
+              <div class="form-group">
+                <label>Filter Role</label>
+                <select id="filterRole"><option value="all">Semua</option>
+                  <option value="admin">Admin</option>
+                  <option value="coordinator">Koordinator</option>
+                  <option value="driver">Supir</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label>Cari Nama</label>
+                <input type="text" id="searchName" placeholder="Ketikkan nama" />
+              </div>
+            </div>
+            <div class="table-responsive">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Nama</th>
+                    <th>Role</th>
+                    <th>NIK</th>
+                    <th>Jenis Kelamin</th>
+                    <th>Status Karyawan</th>
+                    <th>Login Terakhir</th>
+                    <th>Status</th>
+                    <th>Aksi</th>
+                  </tr>
+                </thead>
+                <tbody id="userList">
+                  <tr>
+                    <td colspan="8">Memuat data...</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            <div id="user-pagination-controls" style="display: none; margin-top: 1rem; text-align: center; gap: 1rem;">
+                <button id="prevUserBtn"><i class="fa-solid fa-arrow-left"></i> Sebelumnya</button>
+                <span id="userPageInfo" style="color: var(--light-lavender); font-size: 1.5rem; font-weight: 500; margin: 0 1rem; padding: 0;"></span>
+                <button id="nextUserBtn"><i class="fa-solid fa-arrow-right"></i> Berikutnya</button>
+            </div>
+          </div>
+        </section>
+      </div>
+
+      <div id="page-routes" class="page">
+        <section class="card">
+          <h2 class="card-header">Daftar Rute Tersimpan</h2>
+          <div class="card-body">
+            <div class="table-controls" style="grid-template-columns: 1fr;">
+              <div class="form-group">
+                <label>Cari Kode / Alamat Rute</label>
+                <input type="text" id="searchRoute" placeholder="Ketikkan alamat" />
+              </div>
+            </div>
+            <div class="table-responsive">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Kode</th>
+                    <th>Rute</th>
+                    <th>Aksi</th>
+                  </tr>
+                </thead>
+                <tbody id="routeList">
+                  <tr><td colspan="3">Memuat data...</td></tr>
+                </tbody>
+              </table>
+            </div>
+            <div id="route-pagination-controls" style="display: none; margin-top: 1rem; text-align: center; gap: 1rem;">
+              <button id="prevRouteBtn"><i class="fa-solid fa-arrow-left"></i> Sebelumnya</button>
+              <span id="routePageInfo" style="color: var(--light-lavender); font-size: 1.5rem; font-weight: 500; margin: 0 1rem; padding: 0;"></span>
+              <button id="nextRouteBtn"><i class="fa-solid fa-arrow-right"></i> Berikutnya</button>
+            </div>
+          </div>
+        </section>
+      </div>
+
+      <div id="page-vehicles" class="page">
+        <section class="card">
+          <h2 class="card-header">Daftar Kendaraan Tersimpan</h2>
+          <div class="card-body">
+            <div class="table-controls" style="grid-template-columns: 1fr;">
+              <div class="form-group">
+                <label>Cari No. Kendaraan / Unit</label>
+                <input type="text" id="searchVehicle" placeholder="Ketikkan kendaraan" />
+              </div>
+            </div>
+            <div class="table-responsive">
+              <table>
+                <thead>
+                  <tr>
+                    <th>No. Kendaraan</th>
+                    <th>Unit</th>
+                    <th>Kepemilikan</th>
+                    <th>Aksi</th>
+                  </tr>
+                </thead>
+                <tbody id="vehicleList">
+                  <tr><td colspan="4">Memuat data...</td></tr>
+                </tbody>
+              </table>
+            </div>
+            <div id="vehicle-pagination-controls" style="display: none; margin-top: 1rem; text-align: center; gap: 1rem;">
+              <button id="prevVehicleBtn"><i class="fa-solid fa-arrow-left"></i> Sebelumnya</button>
+              <span id="vehiclePageInfo" style="color: var(--light-lavender); font-size: 1.5rem; font-weight: 500; margin: 0 1rem; padding: 0;"></span>
+              <button id="nextVehicleBtn"><i class="fa-solid fa-arrow-right"></i> Berikutnya</button>
+            </div>
+          </div>
+        </section>
+      </div>
+      
+      <div id="page-addusers" class="page">
+          <section class="card">
+              <h2 class="card-header">Tambah Pengguna Baru</h2>
+              <div class="card-body">
+                  <form id="addUserForm">
+                      <div class="form-group">
+                        <label for="newUserName">Nama</label>
+                        <input type="text" id="newUserName" placeholder="Ketikkan nama" autocomplete="off" required>
+                      </div>
+                      <div class="form-group">
+                        <label for="newUserEmail">Email</label>
+                        <input type="email" id="newUserEmail" placeholder="Ketikkan email" autocomplete="off" required>
+                      </div>
+                      <div class="form-group">
+                        <label for="newUserPassword">Password</label>
+                        <input type="password" id="newUserPassword" placeholder="Ketikkan password" autocomplete="new-password" required>
+                      </div>
+                      <div class="form-group">
+                        <label for="newUserNik">Nomor Identitas (NIK)</label>
+                        <input type="number" id="newUserNik" placeholder="Ketikkan nomor NIK" autocomplete="off" required>
+                      </div>
+                      <div class="form-group">
+                        <label for="newUserGender">Jenis Kelamin</label>
+                        <select id="newUserGender" required>
+                          <option value="">-- Pilih Jenis --</option>
+                          <option value="Laki-laki">Laki-laki</option>
+                          <option value="Perempuan">Perempuan</option>
+                        </select>
+                      </div>
+                      <div class="form-group">
+                        <label for="newUserStatus">Status Karyawan</label>
+                        <select id="newUserStatus" required>
+                          <option value="">-- Pilih Status --</option>
+                          <option value="Tetap">Tetap</option>
+                          <option value="Kontrak">Kontrak</option>
+                          <option value="Freelance">Freelance</option>
+                        </select>
+                      </div>
+                    <div class="form-group">
+                        <label for="newUserRole">Role</label>
+                        <select id="newUserRole" required>
+                          <option value="">-- Pilih Role --</option>
+                          <option value="coordinator">Koordinator</option>
+                          <option value="driver">Supir</option>
+                        </select>
+                      </div>
+                      <button type="submit"><i class="fa-solid fa-user-plus"></i> Tambah User</button>
+                  </form>
+                  <p id="addUserStatus" class="form-status"></p>
+              </div>
+          </section>
+      </div>
+      <div id="page-addrutes" class="page">
+          <section class="card">
+            <h2 class="card-header">Tambah Rute Baru</h2>
+            <div class="card-body">
+              <form id="addRouteForm">
+                <div class="form-group">
+                  <label for="routeCode">Kode Rute</label>
+                  <input type="text" id="routeCode" placeholder="Ketikkan kode" required>
+                </div>
+                <div class="form-group">
+                  <label for="routeAddress">Alamat/Lokasi</label>
+                  <input type="text" id="routeAddress" placeholder="Ketikkan alamat" required>
+                </div>
+                <button type="submit"><i class="fa-solid fa-map-location-dot"></i> Tambah Rute</button>
+              </form>
+              <p id="addRouteStatus" class="form-status"></p>
+            </div>
+          </section>
+      </div>
+      <div id="page-addvehicles" class="page">
+          <section class="card">
+            <h2 class="card-header">Tambah Kendaraan Baru</h2>
+            <div class="card-body">
+              <form id="addVehicleForm">
+                <div class="form-group">
+                  <label for="vehicleNumberInput">No. Kendaraan</label>
+                  <input type="text" id="vehicleNumberInput" placeholder="Ketikkan nomor polisi" required>
+                </div>
+                <div class="form-group">
+                  <label for="vehicleUnit">Unit</label>
+                  <input type="text" id="vehicleUnit" placeholder="Ketikkan kendaraan" required>
+                </div>
+                <div class="form-group">
+                  <label for="vehicleOwnership">Kepemilikan</label>
+                  <select id="vehicleOwnership" required>
+                    <option value="">-- Pilih Kepemilikan --</option>
+                    <option value="Perusahaan">Perusahaan</option>
+                    <option value="Sewa">Sewa</option>
+                  </select>
+                </div>
+                <button type="submit"><i class="fa-solid fa-car"></i> Tambah Kendaraan</button>
+              </form>
+              <p id="addVehicleStatus" class="form-status"></p>
+            </div>
+          </section>
+      </div>
+      <div id="page-performance" class="page">
+        <section class="card">
+          <h2 class="card-header">Aktivitas Terbaru Berdasarkan Role</h2>
+          <div id="roleStats" class="card-body">Memuat statistik...</div>
+        </section>
+      </div>
+
+      <div id="page-documentation" class="page">
+        <section class="card">
+          <h2 class="card-header">Buat Laporan</h2>
+          <div class="card-body">
+            <div class="form-group">
+              <label for="reportType">Pilih Jenis Data</label>
+              <select id="reportType">
+                <option value="trips">Laporan Perjalanan</option>
+                <option value="users">Laporan Pengguna</option>
+                <option value="routes">Laporan Rute</option>
+                <option value="vehicles">Laporan Kendaraan</option>
+              </select>
+            </div>
+            <div id="dateFilterContainer" class="form-group" style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                <div>
+                    <label for="startDate">Dari Tanggal</label>
+                    <input type="date" id="startDate">
+                </div>
+                <div>
+                    <label for="endDate">Sampai Tanggal</label>
+                    <input type="date" id="endDate">
+                </div>
+            </div>
+            <div style="display: flex; gap: 1rem; margin-top: 1rem;">
+                <button id="exportPdfBtn"><i class="fa-solid fa-file-pdf"></i> Unduh PDF</button>
+                <button id="exportExcelBtn"><i class="fa-solid fa-file-excel"></i> Unduh Excel</button>
+            </div>
+          </div>
+        </section>
+      </div>
+
+      <div id="page-tampilan" class="page">
+        <section class="card">
+          <h2 class="card-header">Tema Tampilan</h2>
+          <div class="card-body">
+            <div class="form-group" style="display: flex; justify-content: space-between; align-items: center; margin: 0;">
+              <label for="themeToggle" style="margin: 0;">Mode Terang</label>
+              <label class="switch">
+                <input type="checkbox" id="themeToggle">
+                <span class="slider"></span>
+              </label>
+            </div>
+          </div>
+        </section>
+        <section class="card">
+          <h2 class="card-header">Font Tampilan</h2>
+          <div class="card-body">
+            <div class="form-group" style="margin: 0;">
+              <label for="fontSelector">Pilih Font</label>
+              <select id="fontSelector">
+                <option value="'Poppins', sans-serif">Poppins (Default)</option>
+                <option value="'Roboto', sans-serif">Roboto</option>
+              </select>
+            </div>
+          </div>
+        </section>
+      </div>
+
+      <div id="page-lockdown" class="page">
+        <section class="card">
+          <h2 class="card-header">Mode Lockdown Pengguna</h2>
+          <div class="card-body">
+            <div class="form-group" style="display: flex; justify-content: space-between; align-items: center;">
+              <label for="massLockdownSwitch" style="margin: 0;">Lockdown Semua Pengguna</label>
+              <label class="switch">
+                <input type="checkbox" id="massLockdownSwitch">
+                <span class="slider"></span>
+              </label>
+            </div>
+            <div class="table-responsive">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Nama Pengguna</th>
+                    <th>Role</th>
+                    <th>Status Pengguna</th>
+                  </tr>
+                </thead>
+                <tbody id="lockdownUserList">
+                  <tr><td colspan="3">Memuat data pengguna...</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+      </div>
+      
+      <div id="page-backup" class="page">
+        <section class="card">
+          <h2 class="card-header">Pencadangan Data</h2>
+          <div class="card-body">
+            <p style="color: var(--light-lavender); font-size: 1.5rem; margin-bottom: 1rem;">Unduh salinan semua data sistem (pengguna, perjalanan, rute, kendaraan) dalam satu file JSON. Simpan file ini di tempat yang aman.</p>
+            <button id="downloadBackupBtn"><i class="fas fa-download"></i> Unduh Semua Data (.json)</button>
+          </div>
+        </section>
+        <section class="card">
+          <h2 class="card-header" style="color: var(--red);">Pemulihan Data</h2>
+          <div class="card-body">
+            <p style="color: var(--light-lavender); font-size: 1.5rem; margin-bottom: 1rem;">
+              <strong style="color: var(--orange);">PERINGATAN:</strong> Aksi ini akan <strong style="text-decoration: underline;">menimpa seluruh data</strong> yang ada di database dengan data dari file yang Anda unggah. Aksi ini tidak dapat dibatalkan. Lanjutkan hanya jika Anda benar-benar yakin.
+            </p>
+            <div class="form-group">
+                <label for="restoreFileInput">Pilih File Pencadangan (.json)</label>
+                <input type="file" id="restoreFileInput" accept=".json">
+            </div>
+            <button id="restoreBackupBtn" class="logout-button" style="width: 100%;"><i class="fas fa-upload"></i> Unggah dan Pulihkan Data</button>
+            <p id="restoreStatus" class="form-status"></p>
+          </div>
+        </section>
+      </div>
+</div>
+<footer class="main-footer">
+        <p><strong style="color: var(--orange);">PERINGATAN:</strong> Setiap kali akan eksekusi data silahkan lakukan pengecekan berkala sebelum melakukan submit.</p>
+      </footer>
+        </div>
+    </main>
+    
+  </div>
+
+  <div id="invoiceModal" class="modal">
+    <div class="modal-content">
+      <span class="close-modal" id="closeInvoiceModal"><i class="fa-solid fa-xmark"></i></span>
+      <h2 style="margin: 0 0 2rem 0">Internal Invoice Otomatis</h2>
+      <div class="form-group">
+        <label for="recipientName">Penerima</label>
+        <input type="text" id="recipientName" placeholder="Ketikkan nama" autocomplete="off" required>
+      </div>
+      <div class="form-group">
+        <label for="recipientAddress">Alamat</label>
+        <textarea id="recipientAddress" rows="3" style="resize: none;" placeholder="Ketikkan alamat" autocomplete="off" required></textarea>
+      </div>
+      <button id="printInvoiceBtn" style="width: 100%;"><i class="fa-solid fa-file-arrow-down"></i> Unduh Invoice</button>
+    </div>
+  </div>
+
+  <script type="module">
+    import { 
+      auth, onAuthStateChanged, signOut, db, ref, onValue, update, get, set, push, serverTimestamp,
+      onDisconnect, firebaseConfig, initializeApp, deleteApp, getAuth,
+      createUserWithEmailAndPassword
+    } from './firebase.js';
+    import { badge, fmtDate, el, idr } from './utils.js';
+
+    // --- Hamburger Menu & Overlay Logic ---
+document.addEventListener('DOMContentLoaded', () => {
+    const hamburger = document.getElementById('hamburger-menu');
+    const sidebar = document.querySelector('.sidebar');
+    const mainContent = document.querySelector('.main-content');
+
+    // Toggle sidebar saat hamburger di-klik
+    hamburger.addEventListener('click', (event) => {
+        event.stopPropagation(); // Mencegah event klik menyebar ke elemen lain
+        sidebar.classList.toggle('active');
+    });
+
+    // Menutup sidebar saat area konten utama di-klik (hanya di mode mobile)
+    mainContent.addEventListener('click', () => {
+        if (window.innerWidth <= 1024 && sidebar.classList.contains('active')) {
+            sidebar.classList.remove('active');
+        }
+    });
+});
+// --- End Hamburger Menu Logic ---
+
+    const pageContent = {
+        dashboard: { title: '<i class="fas fa-tachometer-alt"></i> Dashboard', subtitle: 'Ringkasan umum dan statistik sistem.' },
+        monitoring: { title: '<i class="fas fa-truck"></i> Informasi Perjalanan', subtitle: 'Pusat kelola dan pemantauan seluruh data perjalanan.' },
+        users: { title: '<i class="fas fa-users"></i> Manajemen Pengguna', subtitle: 'Kelola semua data pengguna dalam sistem.' },
+        routes: { title: '<i class="fas fa-route"></i> Manajemen Rute', subtitle: 'Kelola daftar rute yang tersedia.' },
+        vehicles: { title: '<i class="fas fa-car"></i> Manajemen Kendaraan', subtitle: 'Kelola daftar kendaraan operasional.' },
+        finance: { title: '<i class="fas fa-wallet"></i> Informasi Keuangan', subtitle: 'Lacak semua transaksi uang jalan dari perjalanan.' },
+        addusers: { title: '<i class="fas fa-user-plus"></i> Tambah Pengguna', subtitle: 'Buat akun baru untuk pengguna.' },
+        addrutes: { title: '<i class="fas fa-plus-circle"></i> Tambah Rute', subtitle: 'Tambahkan rute baru ke dalam sistem.' },
+        addvehicles: { title: '<i class="fas fa-car-side"></i> Tambah Kendaraan', subtitle: 'Tambahkan kendaraan baru ke dalam sistem.' },
+        performance: { title: '<i class="fas fa-chart-line"></i> Kinerja Role', subtitle: 'Lihat ringkasan aktivitas berdasarkan peran.' },
+        documentation: { title: '<i class="fas fa-file-alt"></i> Dokumentasi Laporan', subtitle: 'Buat dan unduh laporan dari data sistem.' },
+        tampilan: { title: '<i class="fas fa-palette"></i> Tampilan', subtitle: 'Sesuaikan tampilan antarmuka sistem.' },
+        lockdown: { title: '<i class="fas fa-lock"></i> Lockdown', subtitle: 'Nonaktifkan sementara pengguna bermasalah.' },
+        backup: { title: '<i class="fas fa-database"></i> Backup & Restore', subtitle: 'Kelola pencadangan dan pemulihan data sistem.' }
+    };
+
+    const elements = {
+        pageTitle: document.getElementById('pageTitle'),
+        pageSubtitle: document.getElementById('pageSubtitle'),
+        navLinks: document.querySelectorAll('.nav-link'),
+        pages: document.querySelectorAll('.page'),
+        userName: document.getElementById('userName'),
+        userEmail: document.getElementById('userEmail'),
+        tripList: document.getElementById('tripList'),
+        userList: document.getElementById('userList'),
+        roleStats: document.getElementById('roleStats'),
+        filterRole: document.getElementById('filterRole'),
+        searchName: document.getElementById('searchName'),
+        filterTripStatus: document.getElementById('filterTripStatus'),
+        searchTrip: document.getElementById('searchTrip'),
+        searchRoute: document.getElementById('searchRoute'),
+        searchVehicle: document.getElementById('searchVehicle'),
+        searchFinance: document.getElementById('searchFinance'),
+        logoutBtn: document.getElementById('logoutBtn'),
+        addUserForm: document.getElementById('addUserForm'),
+        addUserStatus: document.getElementById('addUserStatus'),
+        newUserRole: document.getElementById('newUserRole'),
+        addRouteForm: document.getElementById('addRouteForm'),
+        addRouteStatus: document.getElementById('addRouteStatus'),
+        routeList: document.getElementById('routeList'),
+        addVehicleForm: document.getElementById('addVehicleForm'),
+        addVehicleStatus: document.getElementById('addVehicleStatus'),
+        vehicleList: document.getElementById('vehicleList'),
+        financeList: document.getElementById('financeList'),
+        paginationControls: document.getElementById('pagination-controls'),
+        prevBtn: document.getElementById('prevBtn'),
+        nextBtn: document.getElementById('nextBtn'),
+        pageInfo: document.getElementById('pageInfo'),
+        userPaginationControls: document.getElementById('user-pagination-controls'),
+        prevUserBtn: document.getElementById('prevUserBtn'),
+        nextUserBtn: document.getElementById('nextUserBtn'),
+        userPageInfo: document.getElementById('userPageInfo'),
+        routePaginationControls: document.getElementById('route-pagination-controls'),
+        prevRouteBtn: document.getElementById('prevRouteBtn'),
+        nextRouteBtn: document.getElementById('nextRouteBtn'),
+        routePageInfo: document.getElementById('routePageInfo'),
+        vehiclePaginationControls: document.getElementById('vehicle-pagination-controls'),
+        prevVehicleBtn: document.getElementById('prevVehicleBtn'),
+        nextVehicleBtn: document.getElementById('nextVehicleBtn'),
+        vehiclePageInfo: document.getElementById('vehiclePageInfo'),
+        financePaginationControls: document.getElementById('finance-pagination-controls'),
+        prevFinanceBtn: document.getElementById('prevFinanceBtn'),
+        nextFinanceBtn: document.getElementById('nextFinanceBtn'),
+        financePageInfo: document.getElementById('financePageInfo'),
+        totalTrips: document.getElementById('totalTrips'),
+        tripsThisMonth: document.getElementById('tripsThisMonth'),
+        tripsLastMonth: document.getElementById('tripsLastMonth'),
+        totalUsers: document.getElementById('totalUsers'),
+        onlineUsers: document.getElementById('onlineUsers'),
+        totalRoutes: document.getElementById('totalRoutes'),
+        totalVehicles: document.getElementById('totalVehicles'),
+        activeVehiclesToday: document.getElementById('activeVehiclesToday'),
+        recentActivityList: document.getElementById('recentActivityList'),
+        activityPaginationControls: document.getElementById('activity-pagination-controls'),
+        prevActivityBtn: document.getElementById('prevActivityBtn'),
+        nextActivityBtn: document.getElementById('nextActivityBtn'),
+        activityPageInfo: document.getElementById('activityPageInfo'),
+        reportType: document.getElementById('reportType'),
+        dateFilterContainer: document.getElementById('dateFilterContainer'),
+        startDate: document.getElementById('startDate'),
+        endDate: document.getElementById('endDate'),
+        exportPdfBtn: document.getElementById('exportPdfBtn'),
+        exportExcelBtn: document.getElementById('exportExcelBtn'),
+        themeToggle: document.getElementById('themeToggle'),
+        fontSelector: document.getElementById('fontSelector'),
+        lockdownMenuItem: document.getElementById('lockdown-menu-item'),
+        lockdownUserList: document.getElementById('lockdownUserList'),
+        massLockdownSwitch: document.getElementById('massLockdownSwitch'),
+        backupMenuItem: document.getElementById('backup-menu-item'),
+        downloadBackupBtn: document.getElementById('downloadBackupBtn'),
+        restoreBackupBtn: document.getElementById('restoreBackupBtn'),
+        restoreFileInput: document.getElementById('restoreFileInput'),
+        restoreStatus: document.getElementById('restoreStatus'),
+        invoiceModal: document.getElementById('invoiceModal'),
+        closeInvoiceModal: document.getElementById('closeInvoiceModal'),
+        printInvoiceBtn: document.getElementById('printInvoiceBtn'),
+        recipientName: document.getElementById('recipientName'),
+        recipientAddress: document.getElementById('recipientAddress'),
+        totalUangJalan: document.getElementById('totalUangJalan'),
+    };
+
+    let currentUser = null;
+    let currentUserData = null;
+    let allUsers = {};
+    let allTrips = [];
+    let allRoutes = [];
+    let allVehicles = [];
+    let routeCodeMap = {};
+    let currentTripForInvoice = null;
+    let currentPage = 1;
+    let currentUserPage = 1;
+    let currentRoutePage = 1;
+    let currentVehiclePage = 1;
+    let currentFinancePage = 1;
+    let currentActivityPage = 1;
+    const activityRowsPerPage = 5;
+    const rowsPerPage = 20;
+
+    function setupNavigation() {
+        elements.navLinks.forEach(link => {
+            link.addEventListener('click', (e) => {
+                e.preventDefault();
+                const targetId = link.getAttribute('href').substring(1);
+                elements.pages.forEach(page => page.classList.remove('active'));
+                elements.navLinks.forEach(nav => nav.classList.remove('active'));
+                document.getElementById(`page-${targetId}`).classList.add('active');
+                link.classList.add('active');
+                elements.pageTitle.innerHTML = pageContent[targetId].title;
+                elements.pageSubtitle.textContent = pageContent[targetId].subtitle;
+                
+                // Close sidebar after navigation on mobile
+                const sidebar = document.querySelector('.sidebar');
+                if (sidebar.classList.contains('active')) {
+                    sidebar.classList.remove('active');
+                }
+            });
+        });
+
+        elements.closeInvoiceModal.onclick = () => {
+            elements.invoiceModal.style.display = 'none';
+            elements.recipientName.value = '';
+            elements.recipientAddress.value = '';
+        }
+
+        window.onclick = (event) => {
+          if (event.target == elements.invoiceModal) {
+            elements.invoiceModal.style.display = "none";
+            elements.recipientName.value = '';
+            elements.recipientAddress.value = '';
+          }
+        }
+        
+        elements.printInvoiceBtn.addEventListener('click', () => {
+            const recipientName = elements.recipientName.value;
+            const recipientAddress = elements.recipientAddress.value;
+            if (!recipientName.trim() || !recipientAddress.trim()) {
+                alert('Nama dan Alamat Penerima tidak boleh kosong.');
+                return;
+            }
+            if(currentTripForInvoice) {
+                generateInvoicePDF(currentTripForInvoice.id, currentTripForInvoice.data, recipientName, recipientAddress);
+                elements.invoiceModal.style.display = 'none';
+                elements.recipientName.value = '';
+                elements.recipientAddress.value = '';
+            }
+        });
+    }
+    setupNavigation();
+    
+    // Theme and Font Logic
+    function applyTheme(theme) {
+      if (theme === 'light') {
+        document.body.classList.add('light-mode');
+      } else {
+        document.body.classList.remove('light-mode');
+      }
+    }
+
+    function applyFont(font) {
+      document.body.style.fontFamily = font;
+    }
+    
+    document.addEventListener('DOMContentLoaded', () => {
+        const savedTheme = localStorage.getItem('theme') || 'dark';
+        const savedFont = localStorage.getItem('font') || "'Poppins', sans-serif";
+
+        applyTheme(savedTheme);
+        applyFont(savedFont);
+
+        if (savedTheme === 'light') {
+            elements.themeToggle.checked = true;
+        }
+        elements.fontSelector.value = savedFont;
+
+        elements.themeToggle.addEventListener('change', (e) => {
+            const theme = e.target.checked ? 'light' : 'dark';
+            localStorage.setItem('theme', theme);
+            applyTheme(theme);
+        });
+
+        elements.fontSelector.addEventListener('change', (e) => {
+            const font = e.target.value;
+            localStorage.setItem('font', font);
+            applyFont(font);
+        });
+    });
+
+
+    onAuthStateChanged(auth, async (user) => {
+      if (!user) return window.location.href = 'index.html';
+      currentUser = user;
+      const userRef = ref(db, `users/${user.uid}`);
+      onValue(userRef, (snap) => {
+          if (snap.exists()) {
+              const userData = snap.val();
+              if ((userData.role === 'admin' || userData.role === 'super admin') && userData.locked) {
+                  alert('Akses Anda telah dinonaktifkan sementara. Anda akan dikeluarkan.');
+                  signOut(auth);
+              }
+              if (userData.role !== 'admin' && userData.role !== 'super admin') {
+                  alert('Role Anda telah diubah. Akses ke panel admin ditolak.');
+                  signOut(auth);
+              }
+          } else {
+              alert('Akun Anda tidak lagi terdaftar. Anda akan dikeluarkan.');
+              signOut(auth);
+          }
+      });
+      try {
+        const initialSnap = await get(userRef);
+        if (!initialSnap.exists()) return;
+        currentUserData = initialSnap.val();
+        if (currentUserData.role !== 'admin' && currentUserData.role !== 'super admin') {
+          return;
+        }
+        elements.userName.textContent = currentUserData.name || 'Admin';
+        elements.userEmail.textContent = currentUser.email;
+        if (currentUserData.role === 'super admin') {
+            elements.lockdownMenuItem.style.display = 'block';
+            elements.backupMenuItem.style.display = 'block';
+            const adminOption = el('option', 'Admin', { value: 'admin' });
+            if (!elements.newUserRole.querySelector('option[value="admin"]')) {
+              elements.newUserRole.appendChild(adminOption);
+            }
+        }
+        
+        // ## PERBAIKAN DI SINI: Menambahkan onDisconnect ##
+        const presenceRef = ref(db, `users/${user.uid}/online`);
+        await set(presenceRef, true);
+        onDisconnect(presenceRef).set(false);
+        
+        await loadRoutes();
+        loadInitialData();
+
+      } catch (e) { console.error("Error saat inisialisasi admin:", e); }
+    });
+
+    async function loadRoutes() {
+        return new Promise((resolve) => {
+            onValue(ref(db, 'routes'), (snapshot) => {
+                allRoutes = [];
+                routeCodeMap = {};
+                if (snapshot.exists()) {
+                    snapshot.forEach(child => {
+                        const routeData = { id: child.key, data: child.val() };
+                        allRoutes.push(routeData);
+                        routeCodeMap[routeData.data.address] = routeData.data.code;
+                    });
+                }
+                displayRoutes(1);
+                loadDashboardStats();
+                resolve();
+            }, { onlyOnce: true });
+        });
+    }
+
+    function loadInitialData() {
+        onValue(ref(db, 'users'), (snapshot) => {
+            allUsers = snapshot.val() || {};
+            displayUsers(1);
+            displayLockdownUsers();
+            loadDashboardStats();
+            loadRoleStats(); 
+        });
+        onValue(ref(db, 'trips'), (snapshot) => {
+            allTrips = [];
+            if (snapshot.exists()) {
+              snapshot.forEach(child => { allTrips.push({ id: child.key, data: child.val() }); });
+            }
+            allTrips.sort((a, b) => b.data.createdAt - a.data.createdAt);
+            displayTrips(1);
+            displayFinance(1);
+            loadDashboardStats();
+            loadRoleStats(); 
+        });
+        onValue(ref(db, 'vehicles'), (snapshot) => {
+            allVehicles = [];
+            if (snapshot.exists()) { snapshot.forEach(child => { allVehicles.push({ id: child.key, data: child.val() }); }); }
+            displayVehicles(1);
+            loadDashboardStats();
+        });
+        
+        elements.filterRole.onchange = () => displayUsers(1);
+        elements.searchName.oninput = () => displayUsers(1);
+        elements.filterTripStatus.onchange = () => displayTrips(1);
+        elements.searchTrip.oninput = () => displayTrips(1);
+        elements.searchRoute.oninput = () => displayRoutes(1);
+        elements.searchVehicle.oninput = () => displayVehicles(1);
+        elements.searchFinance.oninput = () => displayFinance(1);
+    }
+
+    function displayRecentActivity(page) {
+        elements.recentActivityList.innerHTML = '';
+        currentActivityPage = page;
+        const start = (page - 1) * activityRowsPerPage;
+        const paginatedActivities = allTrips.slice(start, start + activityRowsPerPage);
+        elements.activityPaginationControls.style.display = allTrips.length >= 20 ? 'flex' : 'none';
+        if (allTrips.length === 0) {
+            elements.recentActivityList.innerHTML = '<tr><td colspan="4" class="empty-state">Belum ada aktivitas perjalanan.</td></tr>';
+        } else {
+            paginatedActivities.forEach(tripEntry => {
+                const trip = tripEntry.data;
+                const tr = el('tr');
+                let actionText = "melakukan perjalanan";
+                switch(trip.status) {
+                    case 'submitted': actionText = "dibuatkan perjalanan"; break;
+                    case 'approved': actionText = "diberi tugas perjalanan"; break;
+                    case 'delivering': actionText = "memulai perjalanan"; break;
+                    case 'arriving_soon': actionText = "hampir tiba di tujuan"; break;
+                    case 'rejected': actionText = "dibatalkan perjalanannya"; break;
+                    case 'arrived': actionText = "menyelesaikan rute"; break;
+                }
+                
+                const asalCode = routeCodeMap[trip.asal] || trip.asal;
+                let tujuanCodes;
+                if (Array.isArray(trip.tujuan)) {
+                    tujuanCodes = trip.tujuan.map(t => routeCodeMap[t] || t).join(', ');
+                } else {
+                    tujuanCodes = routeCodeMap[trip.tujuan] || trip.tujuan;
+                }
+                const ruteDisplay = `${asalCode}, ${tujuanCodes}`;
+                
+                const description = `<span style="color: var(--cyan); font-weight: 500;">${trip.driverName || 'N/A'}</span> ${actionText} <span style="color: var(--green); font-weight: 500;">${ruteDisplay}</span>`;
+                const statusCell = el('td', '', {'data-label': 'Status'});
+                statusCell.appendChild(badge(trip.status));
+                
+                tr.innerHTML = `<td data-label="Deskripsi">${description}</td><td data-label="Uang Jalan">${idr(trip.uangJalan)}</td><td data-label="Tanggal">${fmtDate(trip.tanggal)}</td>`;
+                tr.appendChild(statusCell);
+                elements.recentActivityList.appendChild(tr);
+            });
+        }
+        const totalPages = Math.ceil(allTrips.length / activityRowsPerPage);
+        elements.activityPageInfo.textContent = `Halaman ${page} dari ${totalPages}`;
+        elements.prevActivityBtn.disabled = page === 1;
+        elements.nextActivityBtn.disabled = page === totalPages;
+    }
+    elements.prevActivityBtn.addEventListener('click', () => displayRecentActivity(currentActivityPage - 1));
+    elements.nextActivityBtn.addEventListener('click', () => displayRecentActivity(currentActivityPage + 1));
+    
+    function loadDashboardStats() {
+        elements.totalTrips.textContent = allTrips.length;
+        elements.totalRoutes.textContent = allRoutes.length;
+        elements.totalVehicles.textContent = allVehicles.length;
+        const userCount = Object.keys(allUsers).length;
+        elements.totalUsers.textContent = userCount;
+        const onlineCount = Object.values(allUsers).filter(u => u.online).length;
+        elements.onlineUsers.textContent = onlineCount;
+        
+        const now = new Date();
+        const todayStr = now.toISOString().split('T')[0];
+        const currentYear = now.getFullYear();
+        const currentMonth = now.getMonth();
+
+        let thisMonthCount = 0;
+        let lastMonthCount = 0;
+        const activeVehiclesToday = new Set();
+
+        allTrips.forEach(tripEntry => {
+            const tripDate = new Date(tripEntry.data.tanggal + "T00:00:00");
+            const tripYear = tripDate.getFullYear();
+            const tripMonth = tripDate.getMonth();
+
+            if (tripYear === currentYear && tripMonth === currentMonth) {
+                thisMonthCount++;
+            }
+            
+            const lastMonth = currentMonth === 0 ? 11 : currentMonth - 1;
+            const lastMonthYear = currentMonth === 0 ? currentYear - 1 : currentYear;
+
+            if (tripYear === lastMonthYear && tripMonth === lastMonth) {
+                lastMonthCount++;
+            }
+
+            if (tripEntry.data.tanggal === todayStr && ['approved', 'delivering', 'arriving_soon'].includes(tripEntry.data.status)) {
+                activeVehiclesToday.add(tripEntry.data.vehicleNumber);
+            }
+        });
+        
+        elements.tripsThisMonth.textContent = thisMonthCount;
+        elements.tripsLastMonth.textContent = lastMonthCount;
+        elements.activeVehiclesToday.textContent = activeVehiclesToday.size;
+        
+        displayRecentActivity(1);
+    }
+
+    function openInvoiceModal(trip) {
+      currentTripForInvoice = trip;
+      elements.invoiceModal.style.display = 'block';
+    }
+
+    async function generateQrCodeDataURL(tripId) {
+        const tempQrContainer = document.createElement('div');
+        const url = `${window.location.origin}${window.location.pathname.substring(0, window.location.pathname.lastIndexOf('/'))}/invoice-checking.html?id=${tripId}`;
+        return new Promise(resolve => {
+            new QRCode(tempQrContainer, {
+                text: url,
+                width: 128,
+                height: 128,
+                correctLevel: QRCode.CorrectLevel.H
+            });
+            setTimeout(() => {
+                const canvas = tempQrContainer.querySelector('canvas');
+                resolve(canvas.toDataURL());
+            }, 100);
+        });
+    }
+
+    async function generateInvoicePDF(tripId, tripData, recipientName, recipientAddress) {
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF();
+        const qrCodeDataUrl = await generateQrCodeDataURL(tripId);
+
+        // Header
+        doc.setFontSize(20);
+        doc.setFont('helvetica', 'bold');
+        doc.text('PT MAJU MUNDUR SYANTIQ', 14, 22);
+        
+        doc.setFontSize(11);
+        doc.setFont('helvetica', 'normal');
+        const companyAddress = 'Dahromo 1, RT.02, Kel. Segoroyoso, Kec. Pleret, Kabupaten Bantul, Daerah Istimewa Yogyakarta 55791';
+        const addressLines = doc.splitTextToSize(companyAddress, 100); 
+        doc.text(addressLines, 14, 30);
+        const addressHeight = (addressLines.length * 5);
+        doc.text('Telepon: (021) 555-1234', 14, 30 + addressHeight);
+
+        doc.setFontSize(22);
+        doc.setFont('helvetica', 'bold');
+        doc.text('INVOICE', 200, 22, { align: 'right' });
+
+        // Invoice Info
+        doc.setFontSize(11);
+        doc.setFont('helvetica', 'normal');
+        doc.text(`No. Invoice: ${tripId}`, 200, 32, { align: 'right' });
+        doc.text(`Tanggal: ${fmtDate(new Date().toISOString().slice(0,10))}`, 200, 38, { align: 'right' });
+
+        // Bill To
+        let startY = 36 + addressHeight + 10;
+        doc.setFont('helvetica', 'bold');
+        doc.text('Tagihan Kepada:', 14, startY);
+        doc.setFont('helvetica', 'normal');
+        doc.text(recipientName, 14, startY + 6);
+        doc.text(recipientAddress.split('\n'), 14, startY + 12);
+        
+        // AutoTable for items
+        const ruteDisplay = `${routeCodeMap[tripData.asal] || tripData.asal}, ${Array.isArray(tripData.tujuan) ? tripData.tujuan.map(t => routeCodeMap[t] || t).join(', ') : (routeCodeMap[tripData.tujuan] || tripData.tujuan)}`;
+        const deskripsi = `Pengiriman ${tripData.muatan}`;
+
+        doc.autoTable({
+            startY: startY + 25,
+            head: [['Trip ID', 'Deskripsi', 'Rute', 'Keberangkatan', 'Jumlah']],
+            body: [
+                [tripId, deskripsi, ruteDisplay, fmtDate(tripData.tanggal), idr(tripData.uangJalan)],
+            ],
+            theme: 'striped',
+            headStyles: { fillColor: [22, 34, 53], fontSize: 10 },
+            bodyStyles: { fontSize: 10 },
+            didDrawPage: function (data) {
+                const tableEndY = data.cursor.y;
+                doc.setFontSize(10);
+                doc.setFont('helvetica', 'normal');
+                doc.text(`Supir: ${tripData.driverName}`, 14, tableEndY + 10);
+                doc.text(`Kendaraan: ${tripData.vehicleNumber}`, 14, tableEndY + 15);
+
+                const finalY = tableEndY + 25;
+                doc.setFontSize(11);
+                doc.setFont('helvetica', 'bold');
+                doc.text('Total Tagihan:', 140, finalY, { align: 'left' });
+                doc.text(idr(tripData.uangJalan), 200, finalY, { align: 'right' });
+
+                const pageHeight = doc.internal.pageSize.height;
+                doc.addImage(qrCodeDataUrl, 'PNG', 14, pageHeight - 50, 40, 40);
+                doc.setFontSize(8);
+                doc.text('Scan untuk Verifikasi', 16, pageHeight - 8);
+                
+                doc.setFontSize(10);
+                doc.setFont('helvetica', 'italic');
+                doc.text('Terima kasih atas kepercayaan Anda.', 200, pageHeight - 20, { align: 'right' });
+                doc.text('Pembayaran ke BCA 123456789 a/n PT Maju Mundur Syantiq.', 200, pageHeight - 14, { align: 'right' });
+            }
+        });
+
+        doc.save(`Invoice-${tripId}.pdf`);
+    }
+    
+    function displayTrips(page) {
+      elements.tripList.innerHTML = '';
+      currentPage = page;
+      const searchTerm = elements.searchTrip.value.toLowerCase();
+      const statusFilter = elements.filterTripStatus.value;
+      const filteredTrips = allTrips.filter(tripEntry => {
+          const trip = tripEntry.data;
+          const statusMatch = statusFilter === 'all' || trip.status === statusFilter;
+          const tujuanText = Array.isArray(trip.tujuan) ? trip.tujuan.join(' ') : (trip.tujuan || '');
+          const searchMatch = !searchTerm ||
+              (tripEntry.id || '').toLowerCase().includes(searchTerm) ||
+              (trip.driverName || '').toLowerCase().includes(searchTerm) ||
+              (trip.asal || '').toLowerCase().includes(searchTerm) ||
+              tujuanText.toLowerCase().includes(searchTerm);
+          return statusMatch && searchMatch;
+      });
+      const start = (currentPage - 1) * rowsPerPage;
+      const end = start + rowsPerPage;
+      const paginatedTrips = filteredTrips.slice(start, end);
+      if (paginatedTrips.length === 0 && filteredTrips.length > 0) {
+        currentPage = Math.ceil(filteredTrips.length / rowsPerPage);
+        return displayTrips(currentPage);
+      }
+      elements.paginationControls.style.display = filteredTrips.length > rowsPerPage ? 'flex' : 'none';
+      if (paginatedTrips.length === 0) {
+        elements.tripList.innerHTML = '<tr><td colspan="9" class="empty-state">Tidak ada perjalanan ditemukan.</td></tr>';
+      } else {
+        paginatedTrips.forEach(tripEntry => {
+            const tripId = tripEntry.id;
+            const trip = tripEntry.data;
+            const tr = el('tr');
+
+            const asalCode = routeCodeMap[trip.asal] || trip.asal;
+            let tujuanCodes;
+            if (Array.isArray(trip.tujuan)) {
+                tujuanCodes = trip.tujuan.map(t => routeCodeMap[t] || t).join(', ');
+            } else {
+                tujuanCodes = routeCodeMap[trip.tujuan] || trip.tujuan;
+            }
+            const ruteDisplay = `${asalCode}, ${tujuanCodes}`;
+            const tripInfoForDelete = `${asalCode}, ${tujuanCodes}`;
+            
+            const actionsCell = el('td', '', {'data-label': 'Aksi'});
+            const actionsContainer = el('div', '', { class: 'trip-actions' });
+            actionsContainer.style.justifyContent = 'flex-end';
+            
+            if (trip.status === 'submitted') {
+                const approveBtn = el('button', 'Setujui', { class: 'btn-sm success' });
+                const rejectBtn = el('button', 'Tolak', { class: 'btn-sm danger' });
+                approveBtn.onclick = () => update(ref(db, `trips/${tripId}`), { status: 'approved', approvedAt: Date.now(), approvedBy: currentUser.uid, isRead_coor: false });
+                rejectBtn.onclick = () => update(ref(db, `trips/${tripId}`), { status: 'rejected', rejectedAt: Date.now(), rejectedBy: currentUser.uid, isRead_coor: false });
+                actionsContainer.append(approveBtn, rejectBtn);
+            }
+
+            if (trip.status === 'approved' || trip.status === 'delivering' || trip.status === 'arriving_soon' || trip.status === 'arrived') {
+                const invButton = el('button', '<i class="fas fa-file-invoice"></i> Invoice', { class: 'btn-sm info' });
+                invButton.onclick = () => openInvoiceModal(tripEntry);
+                actionsContainer.append(invButton);
+            }
+
+            if (currentUserData && currentUserData.role === 'super admin') {
+                const deleteBtn = el('button', '<i class="fa-solid fa-trash"></i> Hapus', { class: 'btn-sm btn-delete-trip', 'data-trip-id': tripId, 'data-trip-info': tripInfoForDelete });
+                actionsContainer.appendChild(deleteBtn);
+            }
+
+            actionsCell.appendChild(actionsContainer);
+            const statusCell = el('td', '', {'data-label': 'Status'});
+            statusCell.appendChild(badge(trip.status));
+            tr.innerHTML = `
+                <td data-label="Trip ID">${tripId}</td>
+                <td data-label="Rute">${ruteDisplay}</td>
+                <td data-label="Supir">${trip.driverName || 'N/A'}</td>
+                <td data-label="No. Kendaraan">${trip.vehicleNumber || 'N/A'}</td>
+                <td data-label="Muatan">${trip.muatan || 'N/A'}</td>
+                <td data-label="Uang Jalan">${idr(trip.uangJalan)}</td>
+                <td data-label="Tanggal">${fmtDate(trip.tanggal)}</td>
+            `;
+            tr.appendChild(statusCell);
+            tr.appendChild(actionsCell);
+            elements.tripList.appendChild(tr);
+        });
+      }
+      const totalPages = Math.ceil(filteredTrips.length / rowsPerPage);
+      elements.pageInfo.textContent = `Halaman ${currentPage} dari ${totalPages}`;
+      elements.prevBtn.disabled = currentPage === 1;
+      elements.nextBtn.disabled = currentPage === totalPages;
+    }
+
+    elements.prevBtn.addEventListener('click', () => { if (currentPage > 1) { displayTrips(currentPage - 1); } });
+    elements.nextBtn.addEventListener('click', () => { 
+        const searchTerm = elements.searchTrip.value.toLowerCase();
+        const statusFilter = elements.filterTripStatus.value;
+        const filteredTrips = allTrips.filter(tripEntry => {
+            const trip = tripEntry.data;
+            const statusMatch = statusFilter === 'all' || trip.status === statusFilter;
+            const tujuanText = Array.isArray(trip.tujuan) ? trip.tujuan.join(' ') : (trip.tujuan || '');
+            const searchMatch = !searchTerm || (trip.driverName || '').toLowerCase().includes(searchTerm) || (trip.asal || '').toLowerCase().includes(searchTerm) || tujuanText.toLowerCase().includes(searchTerm);
+            return statusMatch && searchMatch;
+        });
+        const totalPages = Math.ceil(filteredTrips.length / rowsPerPage); 
+        if (currentPage < totalPages) { displayTrips(currentPage + 1); } 
+    });
+
+    function displayUsers(page) {
+      elements.userList.innerHTML = '';
+      currentUserPage = page;
+      const roleOrder = ['super admin', 'admin', 'coordinator', 'driver'];
+      const sortedUsers = Object.entries(allUsers).sort(([, a], [, b]) => roleOrder.indexOf(a.role) - roleOrder.indexOf(b.role));
+      const filteredUsers = sortedUsers.filter(([uid, u]) => {
+        const nameMatch = !elements.searchName.value || (u.name || '').toLowerCase().includes(elements.searchName.value.toLowerCase());
+        const roleMatch = elements.filterRole.value === 'all' || u.role === elements.filterRole.value;
+        return nameMatch && roleMatch;
+      });
+      const start = (currentUserPage - 1) * rowsPerPage;
+      const end = start + rowsPerPage;
+      const paginatedUsers = filteredUsers.slice(start, end);
+      if (paginatedUsers.length === 0 && filteredUsers.length > 0) {
+        currentUserPage = Math.ceil(filteredUsers.length / rowsPerPage);
+        return displayUsers(currentUserPage);
+      }
+      elements.userPaginationControls.style.display = filteredUsers.length > rowsPerPage ? 'flex' : 'none';
+      if (paginatedUsers.length === 0) {
+        elements.userList.innerHTML = '<tr><td colspan="8">Tidak ada user ditemukan.</td></tr>';
+      } else {
+        paginatedUsers.forEach(([uid, u]) => {
+          const tr = el('tr');
+          const isCurrentUser = (uid === currentUser.uid);
+          const isTargetSuperAdmin = u.role === 'super admin';
+          const isCurrentUserAdmin = currentUserData.role === 'admin';
+          let deleteButton;
+          if (isCurrentUser) {
+              deleteButton = `<button class="delete-user-btn" disabled title="Tidak dapat menghapus diri sendiri"><i class="fa-solid fa-trash"></i> Hapus</button>`;
+          } else if (isCurrentUserAdmin && isTargetSuperAdmin) {
+              deleteButton = `<button class="delete-user-btn" disabled title="Admin tidak dapat menghapus Super Admin"><i class="fa-solid fa-trash"></i> Hapus</button>`;
+          } else {
+              deleteButton = `<button class="delete-user-btn" data-uid="${uid}" data-name="${u.name || 'tanpa nama'}"><i class="fa-solid fa-trash"></i> Hapus</button>`;
+          }
+          const roleClass = (u.role || '').replace(' ', '-');
+          tr.innerHTML = `
+              <td data-label="Nama">${u.name || '-'}</td>
+              <td data-label="Role"><span class="role-badge role-${roleClass}">${u.role || '-'}</span></td>
+              <td data-label="NIK">${u.nik || '-'}</td>
+              <td data-label="Jenis Kelamin">${u.gender || '-'}</td>
+              <td data-label="Status Karyawan">${u.employeeStatus || '-'}</td>
+              <td data-label="Login Terakhir">${u.lastLogin ? new Date(u.lastLogin).toLocaleString('id-ID') : '-'}</td>
+              <td data-label="Status" class="${u.online ? 'status-online' : 'status-offline'}"><i class="fas fa-circle"></i> ${u.online ? 'Online' : 'Offline'}</td>
+              <td data-label="Aksi">${deleteButton}</td>
+          `;
+          elements.userList.appendChild(tr);
+        });
+      }
+      const totalPages = Math.ceil(filteredUsers.length / rowsPerPage);
+      elements.userPageInfo.textContent = `Halaman ${currentUserPage} dari ${totalPages}`;
+      elements.prevUserBtn.disabled = currentUserPage === 1;
+      elements.nextUserBtn.disabled = currentUserPage === totalPages;
+    }
+    elements.prevUserBtn.addEventListener('click', () => { if (currentUserPage > 1) { displayUsers(currentUserPage - 1); } });
+    elements.nextUserBtn.addEventListener('click', () => { const totalPages = Math.ceil(Object.keys(allUsers).length / rowsPerPage); if (currentUserPage < totalPages) { displayUsers(currentUserPage + 1); } });
+    
+    elements.userList.addEventListener('click', async (e) => {
+        if (e.target.classList.contains('delete-user-btn')) {
+            const { uid, name } = e.target.dataset;
+            if (confirm(`Yakin ingin hapus data user: ${name}?`)) {
+                try {
+                    await set(ref(db, `users/${uid}`), null);
+                    alert(`Data user ${name} berhasil dihapus.`);
+                } catch (error) { alert(`Gagal: ${error.message}`); }
+            }
+        }
+    });
+
+    function displayRoutes(page) {
+      elements.routeList.innerHTML = '';
+      currentRoutePage = page;
+      const searchTerm = elements.searchRoute.value.toLowerCase();
+      const filteredRoutes = allRoutes.filter(routeEntry => {
+          const route = routeEntry.data;
+          return !searchTerm || (route.code || '').toLowerCase().includes(searchTerm) || (route.address || '').toLowerCase().includes(searchTerm);
+      });
+      const start = (currentRoutePage - 1) * rowsPerPage;
+      const end = start + rowsPerPage;
+      const paginatedRoutes = filteredRoutes.slice(start, end);
+      if (paginatedRoutes.length === 0 && filteredRoutes.length > 0) {
+        currentRoutePage = Math.ceil(filteredRoutes.length / rowsPerPage);
+        return displayRoutes(currentRoutePage);
+      }
+      elements.routePaginationControls.style.display = filteredRoutes.length > rowsPerPage ? 'flex' : 'none';
+      if (paginatedRoutes.length === 0) {
+        elements.routeList.innerHTML = '<tr><td colspan="3">Tidak ada rute ditemukan.</td></tr>';
+      } else {
+        paginatedRoutes.forEach(routeEntry => {
+          const routeId = routeEntry.id;
+          const route = routeEntry.data;
+          const tr = el('tr');
+          tr.innerHTML = `<td data-label="Kode">${route.code}</td><td data-label="Rute">${route.address}</td>`;
+          const actionsCell = el('td', '', {'data-label': 'Aksi'});
+          const deleteBtn = el('button', '<i class="fa-solid fa-trash"></i> Hapus', { class: 'btn-sm danger' });
+          deleteBtn.onclick = async () => {
+            if (confirm(`Yakin ingin hapus rute ${route.code} - ${route.address}?`)) {
+              await set(ref(db, `routes/${routeId}`), null);
+            }
+          };
+          actionsCell.appendChild(deleteBtn);
+          tr.appendChild(actionsCell);
+          elements.routeList.appendChild(tr);
+        });
+      }
+      const totalPages = Math.ceil(filteredRoutes.length / rowsPerPage);
+      elements.routePageInfo.textContent = `Halaman ${currentRoutePage} dari ${totalPages}`;
+      elements.prevRouteBtn.disabled = currentRoutePage === 1;
+      elements.nextRouteBtn.disabled = currentRoutePage === totalPages;
+    }
+    elements.prevRouteBtn.addEventListener('click', () => { if (currentRoutePage > 1) { displayRoutes(currentRoutePage - 1); } });
+    elements.nextRouteBtn.addEventListener('click', () => { 
+        const searchTerm = elements.searchRoute.value.toLowerCase();
+        const filteredRoutes = allRoutes.filter(routeEntry => {
+            const route = routeEntry.data;
+            return !searchTerm || (route.code || '').toLowerCase().includes(searchTerm) || (route.address || '').toLowerCase().includes(searchTerm);
+        });
+        const totalPages = Math.ceil(filteredRoutes.length / rowsPerPage); 
+        if (currentRoutePage < totalPages) { displayRoutes(currentRoutePage + 1); } 
+    });
+    
+    function displayVehicles(page) {
+      elements.vehicleList.innerHTML = '';
+      currentVehiclePage = page;
+      const searchTerm = elements.searchVehicle.value.toLowerCase();
+      const filteredVehicles = allVehicles.filter(vehicleEntry => {
+          const vehicle = vehicleEntry.data;
+          return !searchTerm || (vehicle.vehicleNumber || '').toLowerCase().includes(searchTerm) || (vehicle.unit || '').toLowerCase().includes(searchTerm);
+      });
+      const start = (currentVehiclePage - 1) * rowsPerPage;
+      const end = start + rowsPerPage;
+      const paginatedVehicles = filteredVehicles.slice(start, end);
+      if (paginatedVehicles.length === 0 && filteredVehicles.length > 0) {
+        currentVehiclePage = Math.ceil(filteredVehicles.length / rowsPerPage);
+        return displayVehicles(currentVehiclePage);
+      }
+      elements.vehiclePaginationControls.style.display = filteredVehicles.length > rowsPerPage ? 'flex' : 'none';
+      if (paginatedVehicles.length === 0) {
+        elements.vehicleList.innerHTML = '<tr><td colspan="4">Tidak ada kendaraan ditemukan.</td></tr>';
+      } else {
+        paginatedVehicles.forEach(vehicleEntry => {
+          const vehicleId = vehicleEntry.id;
+          const vehicle = vehicleEntry.data;
+          const tr = el('tr');
+          tr.innerHTML = `<td data-label="No. Kendaraan">${vehicle.vehicleNumber}</td><td data-label="Unit">${vehicle.unit || '-'}</td><td data-label="Kepemilikan">${vehicle.ownership || '-'}</td>`;
+          const actionsCell = el('td', '', {'data-label': 'Aksi'});
+          const deleteBtn = el('button', '<i class="fa-solid fa-trash"></i> Hapus', { class: 'btn-sm danger' });
+          deleteBtn.onclick = async () => {
+            if (confirm(`Yakin ingin hapus Kendaraan ${vehicle.vehicleNumber}?`)) {
+              await set(ref(db, `vehicles/${vehicleId}`), null);
+            }
+          };
+          actionsCell.appendChild(deleteBtn);
+          tr.appendChild(actionsCell);
+          elements.vehicleList.appendChild(tr);
+        });
+      }
+      const totalPages = Math.ceil(filteredVehicles.length / rowsPerPage);
+      elements.vehiclePageInfo.textContent = `Halaman ${currentVehiclePage} dari ${totalPages}`;
+      elements.prevVehicleBtn.disabled = currentVehiclePage === 1;
+      elements.nextVehicleBtn.disabled = currentVehiclePage === totalPages;
+    }
+    elements.prevVehicleBtn.addEventListener('click', () => { if (currentVehiclePage > 1) { displayVehicles(currentVehiclePage - 1); } });
+    elements.nextVehicleBtn.addEventListener('click', () => { 
+        const searchTerm = elements.searchVehicle.value.toLowerCase();
+        const filteredVehicles = allVehicles.filter(vehicleEntry => {
+            const vehicle = vehicleEntry.data;
+            return !searchTerm || (vehicle.vehicleNumber || '').toLowerCase().includes(searchTerm) || (vehicle.unit || '').toLowerCase().includes(searchTerm);
+        });
+        const totalPages = Math.ceil(filteredVehicles.length / rowsPerPage); 
+        if (currentVehiclePage < totalPages) { displayVehicles(currentVehiclePage + 1); }
+    });
+
+    function displayFinance(page) {
+      elements.financeList.innerHTML = '';
+      currentFinancePage = page;
+      const searchTerm = elements.searchFinance.value.toLowerCase();
+      const filteredTrips = allTrips.filter(tripEntry => {
+        const trip = tripEntry.data;
+        const tujuanText = Array.isArray(trip.tujuan) ? trip.tujuan.join(' ') : (trip.tujuan || '');
+        return !searchTerm ||
+              (tripEntry.id || '').toLowerCase().includes(searchTerm) ||
+              (trip.driverName || '').toLowerCase().includes(searchTerm) ||
+              (trip.asal || '').toLowerCase().includes(searchTerm) ||
+              tujuanText.toLowerCase().includes(searchTerm);
+      });
+      
+      const totalUangJalan = filteredTrips.reduce((sum, trip) => sum + (Number(trip.data.uangJalan) || 0), 0);
+      elements.totalUangJalan.textContent = idr(totalUangJalan);
+
+      const start = (currentFinancePage - 1) * rowsPerPage;
+      const paginatedTrips = filteredTrips.slice(start, start + rowsPerPage);
+
+      elements.financePaginationControls.style.display = filteredTrips.length > rowsPerPage ? 'flex' : 'none';
+      if (paginatedTrips.length === 0) {
+        elements.financeList.innerHTML = '<tr><td colspan="5" class="empty-state">Tidak ada data keuangan ditemukan.</td></tr>';
+      } else {
+        paginatedTrips.forEach(tripEntry => {
+          const { id: tripId, data: trip } = tripEntry;
+          const tr = el('tr');
+          const asalCode = routeCodeMap[trip.asal] || trip.asal;
+          const tujuanCodes = Array.isArray(trip.tujuan) ? trip.tujuan.map(t => routeCodeMap[t] || t).join(', ') : (routeCodeMap[trip.tujuan] || trip.tujuan);
+          const ruteDisplay = `${asalCode}, ${tujuanCodes}`;
+          tr.innerHTML = `
+            <td data-label="Trip ID">${tripId}</td>
+            <td data-label="Rute">${ruteDisplay}</td>
+            <td data-label="Supir">${trip.driverName || 'N/A'}</td>
+            <td data-label="Tanggal">${fmtDate(trip.tanggal)}</td>
+            <td data-label="Uang Jalan">${idr(trip.uangJalan)}</td>
+          `;
+          elements.financeList.appendChild(tr);
+        });
+      }
+
+      const totalPages = Math.ceil(filteredTrips.length / rowsPerPage);
+      elements.financePageInfo.textContent = `Halaman ${currentFinancePage} dari ${totalPages}`;
+      elements.prevFinanceBtn.disabled = currentFinancePage === 1;
+      elements.nextFinanceBtn.disabled = currentFinancePage === totalPages;
+    }
+    elements.prevFinanceBtn.addEventListener('click', () => { if (currentFinancePage > 1) displayFinance(currentFinancePage - 1); });
+    elements.nextFinanceBtn.addEventListener('click', () => {
+        const searchTerm = elements.searchFinance.value.toLowerCase();
+        const filteredTrips = allTrips.filter(tripEntry => {
+            const trip = tripEntry.data;
+            const tujuanText = Array.isArray(trip.tujuan) ? trip.tujuan.join(' ') : (trip.tujuan || '');
+            return !searchTerm || (tripEntry.id || '').toLowerCase().includes(searchTerm) || (trip.driverName || '').toLowerCase().includes(searchTerm) || (trip.asal || '').toLowerCase().includes(searchTerm) || tujuanText.toLowerCase().includes(searchTerm);
+        });
+        const totalPages = Math.ceil(filteredTrips.length / rowsPerPage);
+        if (currentFinancePage < totalPages) displayFinance(currentFinancePage + 1);
+    });
+
+    elements.addVehicleForm.addEventListener('submit', async (e) => { 
+        e.preventDefault(); 
+        const vehicleNumber = document.getElementById('vehicleNumberInput').value.toUpperCase(); 
+        const unit = document.getElementById('vehicleUnit').value; 
+        const ownership = document.getElementById('vehicleOwnership').value;
+        elements.addVehicleStatus.style.display = 'block'; 
+        elements.addVehicleStatus.textContent = 'Menambahkan...'; 
+        try { 
+            await push(ref(db, 'vehicles'), { vehicleNumber, unit, ownership }); 
+            elements.addVehicleStatus.textContent = '✔️ Kendaraan berhasil ditambahkan.'; 
+            elements.addVehicleForm.reset(); 
+            setTimeout(() => { 
+                elements.addVehicleStatus.textContent = ''; 
+                elements.addVehicleStatus.style.display = 'none'; 
+            }, 3000); 
+        } catch (error) { 
+            elements.addVehicleStatus.textContent = 'Gagal: ' + error.message; 
+        } 
+    });
+
+    elements.addRouteForm.addEventListener('submit', async (e) => { e.preventDefault(); const code = document.getElementById('routeCode').value.toUpperCase(); const address = document.getElementById('routeAddress').value; elements.addRouteStatus.style.display = 'block'; elements.addRouteStatus.textContent = 'Menambahkan...'; try { await push(ref(db, 'routes'), { code, address }); elements.addRouteStatus.textContent = '✔️ Rute berhasil ditambahkan.'; elements.addRouteForm.reset(); setTimeout(() => { elements.addRouteStatus.textContent = ''; elements.addRouteStatus.style.display = 'none'; }, 3000); } catch (error) { elements.addRouteStatus.textContent = 'Gagal: ' + error.message; } });
+    elements.addUserForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        elements.addUserStatus.style.display = 'block';
+        elements.addUserStatus.textContent = 'Menambahkan...';
+        const name = document.getElementById('newUserName').value;
+        const email = document.getElementById('newUserEmail').value;
+        const password = document.getElementById('newUserPassword').value;
+        const role = document.getElementById('newUserRole').value;
+        const nik = document.getElementById('newUserNik').value;
+        const gender = document.getElementById('newUserGender').value;
+        const employeeStatus = document.getElementById('newUserStatus').value;
+        const tempAppName = 'temp-app-' + Date.now();
+        let tempApp;
+        try {
+            tempApp = initializeApp(firebaseConfig, tempAppName);
+            const cred = await createUserWithEmailAndPassword(getAuth(tempApp), email, password);
+            await set(ref(db, `users/${cred.user.uid}`), {
+                name,
+                role,
+                nik,
+                gender,
+                employeeStatus,
+                online: false,
+                lastLogin: null
+            });
+            elements.addUserStatus.textContent = `✔️ User ${name} berhasil ditambahkan.`;
+            elements.addUserForm.reset();
+            setTimeout(() => {
+                elements.addUserStatus.textContent = '';
+                elements.addUserStatus.style.display = 'none';
+            }, 3000);
+        } catch (error) {
+            elements.addUserStatus.textContent = 'Gagal: ' + error.message;
+        } finally {
+            if (tempApp) await deleteApp(tempApp);
+        }
+    });
+    elements.tripList.addEventListener('click', async (e) => { if (e.target.classList.contains('btn-delete-trip')) { const { tripId, tripInfo } = e.target.dataset; if (confirm(`Yakin ingin hapus perjalanan:\n${tripInfo}?`)) { try { await set(ref(db, `trips/${tripId}`), null); alert(`Perjalanan berhasil dihapus.`); } catch (error) { alert(`Gagal: ${error.message}`); } } } });
+    
+    function loadRoleStats() { 
+        if (!Object.keys(allUsers).length) { 
+            elements.roleStats.textContent = "Memuat data user..."; 
+            return;
+        }
+        let activities = { admin: [], coordinator: [], driver: [] }; 
+        allTrips.forEach(tripEntry => { 
+            const t = tripEntry.data;
+            const tripId = tripEntry.id;
+
+            const asalCode = routeCodeMap[t.asal] || t.asal;
+            let tujuanCodes;
+            if (Array.isArray(t.tujuan)) {
+                tujuanCodes = t.tujuan.map(tujuan => routeCodeMap[tujuan] || tujuan).join(', ');
+            } else {
+                tujuanCodes = routeCodeMap[t.tujuan] || t.tujuan;
+            }
+            const tripInfo = `${asalCode}, ${tujuanCodes}`; 
+            if (t.approvedBy && t.approvedAt) { 
+                const coorName = allUsers[t.coorId]?.name || 'Koordinator Dihapus'; 
+                activities.admin.push({ userId: t.approvedBy, time: t.approvedAt, action: `Menyetujui trip dari ${coorName}`, tripId: tripId }); 
+            } 
+            if (t.rejectedBy && t.rejectedAt) { 
+                const coorName = allUsers[t.coorId]?.name || 'Koordinator Dihapus'; 
+                activities.admin.push({ userId: t.rejectedBy, time: t.rejectedAt, action: `Menolak trip dari ${coorName}`, tripId: tripId }); 
+            } 
+            if (t.coorId && t.createdAt) { 
+                const driverName = t.driverName || 'Supir Tidak Dikenal'; 
+                activities.coordinator.push({ userId: t.coorId, time: t.createdAt, action: `Membuat trip untuk ${driverName}`, tripId: tripId }); 
+            } 
+            if (t.driverId && t.arrivedAt) { 
+                activities.driver.push({ userId: t.driverId, time: t.arrivedAt, action: `Menyelesaikan trip ${tripInfo}`, tripId: tripId }); 
+            } 
+        }); 
+        const createActivityTable = (role, title) => { 
+            let tableHtml = `<h4>${title} (${activities[role].length} Total Aksi)</h4>`; 
+            if (activities[role].length === 0) { return tableHtml + `<p class="empty-state">Belum ada aktivitas.</p>`; } 
+            const sortedActivities = activities[role].sort((a, b) => b.time - a.time).slice(0, 15); 
+            tableHtml += `<div class="table-responsive"><table class="performance-table"><thead><tr><th>Nama</th><th>Aksi</th><th>Waktu</th></tr></thead><tbody>`; 
+            sortedActivities.forEach(act => { 
+                const userName = allUsers[act.userId]?.name || 'User Dihapus'; 
+                const actionTime = new Date(act.time).toLocaleString('id-ID', { dateStyle: 'medium', timeStyle: 'short' }); 
+                tableHtml += `<tr><td data-label="Nama">${userName}</td><td data-label="Aksi">${act.action}</td><td data-label="Waktu">${actionTime}</td></tr>`; 
+            }); 
+            tableHtml += '</tbody></table></div>'; 
+            return tableHtml; 
+        }; 
+        elements.roleStats.innerHTML = `${createActivityTable('admin', 'Aktivitas Admin')}<hr>${createActivityTable('coordinator', 'Aktivitas Koordinator')}<hr>${createActivityTable('driver', 'Aktivitas Supir')}`; 
+    }
+    
+    function displayLockdownUsers() {
+      elements.lockdownUserList.innerHTML = '';
+      let allLocked = true;
+      let eligibleUsers = 0;
+      const roleOrder = ['super admin', 'admin', 'coordinator', 'driver'];
+      const sortedUsers = Object.entries(allUsers).sort(([, a], [, b]) => roleOrder.indexOf(a.role) - roleOrder.indexOf(b.role));
+      sortedUsers.forEach(([uid, user]) => {
+        const tr = el('tr');
+        const nameCell = el('td', user.name || 'N/A', {'data-label': 'Nama Pengguna'});
+        const roleCell = el('td', user.role || 'N/A', {'data-label': 'Role'});
+        const statusCell = el('td', '', {'data-label': 'Status Pengguna'});
+        if (user.role === 'super admin') {
+          statusCell.textContent = 'Tidak dapat dinonaktifkan';
+        } else {
+          eligibleUsers++;
+          if (!user.locked) {
+            allLocked = false;
+          }
+          const switchLabel = el('label', '', { class: 'switch' });
+          const switchInput = el('input', '', { type: 'checkbox' });
+          switchInput.checked = user.locked || false;
+          switchInput.addEventListener('change', async (e) => {
+            await update(ref(db, `users/${uid}`), { locked: e.target.checked });
+          });
+          const slider = el('span', '', { class: 'slider' });
+          switchLabel.append(switchInput, slider);
+          statusCell.appendChild(switchLabel);
+        }
+        tr.append(nameCell, roleCell, statusCell);
+        elements.lockdownUserList.appendChild(tr);
+      });
+      elements.massLockdownSwitch.checked = eligibleUsers > 0 && allLocked;
+    }
+
+    elements.massLockdownSwitch.addEventListener('change', async (e) => {
+      const lock = e.target.checked;
+      const action = lock ? 'menonaktifkan' : 'mengaktifkan';
+      if (confirm(`Anda yakin ingin ${action} semua pengguna (kecuali super admin)?`)) {
+        const updates = {};
+        Object.entries(allUsers).forEach(([uid, user]) => {
+          if (user.role !== 'super admin') {
+            updates[`/users/${uid}/locked`] = lock;
+          }
+        });
+        await update(ref(db), updates);
+        alert('Status semua pengguna berhasil diperbarui.');
+      } else {
+        e.target.checked = !lock;
+      }
+    });
+
+    elements.logoutBtn.addEventListener('click', async () => { 
+        if (currentUser) await update(ref(db, `users/${currentUser.uid}`), { online: false }); 
+        signOut(auth); 
+    });
+
+    const { jsPDF } = window.jspdf;
+
+    function exportToExcel(data, filename, title) {
+        if (data.length === 0) {
+          alert("Tidak ada data untuk diekspor.");
+          return;
+        }
+        const worksheet = XLSX.utils.json_to_sheet(data, { origin: 'A2' });
+        XLSX.utils.sheet_add_aoa(worksheet, [[title]], { origin: 'A1' });
+
+        const workbook = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(workbook, worksheet, 'Laporan');
+        XLSX.writeFile(workbook, `${filename}_${new Date().toISOString().slice(0,10)}.xlsx`);
+    }
+
+    function exportToPDF(headers, body, filename, title, summary) {
+        if (body.length === 0) {
+          alert("Tidak ada data untuk diekspor.");
+          return;
+        }
+        const doc = new jsPDF();
+        
+        // Header
+        doc.setFontSize(18);
+        doc.setFont('helvetica', 'bold');
+        doc.text('PT MAJU MUNDUR SYANTIQ', 14, 22);
+        doc.setFontSize(11);
+        doc.setFont('helvetica', 'normal');
+        doc.text('Dahromo 1, RT.02, Segoroyoso, Pleret, Bantul, DIY 55791', 14, 30);
+        doc.setLineWidth(0.5);
+        doc.line(14, 35, 196, 35);
+
+        // Judul Laporan
+        doc.setFontSize(16);
+        doc.setFont('helvetica', 'bold');
+        doc.text(title, 105, 45, { align: 'center' });
+
+        // Ringkasan
+        doc.setFontSize(10);
+        doc.setFont('helvetica', 'normal');
+        doc.text(summary, 14, 55);
+
+        // Tabel
+        doc.autoTable({ 
+            head: [headers], 
+            body: body, 
+            startY: 60,
+            theme: 'grid',
+            headStyles: { fillColor: [26, 34, 53] }, // --dark-slate-blue
+            styles: { fontSize: 9 },
+            didDrawPage: function (data) {
+                // Footer
+                const pageCount = doc.internal.getNumberOfPages();
+                doc.setFontSize(8);
+                const pageHeight = doc.internal.pageSize.height;
+                doc.text(`Halaman ${data.pageNumber} dari ${pageCount}`, data.settings.margin.left, pageHeight - 10);
+                doc.text(`Dicetak pada: ${new Date().toLocaleString('id-ID')}`, 196 - data.settings.margin.right, pageHeight - 10, { align: 'right' });
+            }
+        });
+
+        doc.save(`${filename}_${new Date().toISOString().slice(0,10)}.pdf`);
+    }
+    
+    function handleExport(format) {
+      const reportType = elements.reportType.value;
+      let dataForExcel, bodyForPDF, headers, filename, title, summary;
+      const statusMap = {
+          submitted: "Menunggu", approved: "Disetujui", delivering: "Dalam Perjalanan",
+          arriving_soon: "Hampir Sampai", arrived: "Selesai", rejected: "Ditolak",
+      };
+
+      switch (reportType) {
+        case 'trips':
+          const startDate = elements.startDate.value;
+          const endDate = elements.endDate.value;
+          if (!startDate || !endDate) {
+              alert("Silakan pilih rentang tanggal terlebih dahulu.");
+              return;
+          }
+          const filteredTrips = allTrips.filter(trip => {
+              const tripDate = trip.data.tanggal;
+              return tripDate >= startDate && tripDate <= endDate;
+          });
+          
+          dataForExcel = filteredTrips.map(t => ({
+            'Rute': `${routeCodeMap[t.data.asal] || t.data.asal}, ${Array.isArray(t.data.tujuan) ? t.data.tujuan.map(tujuan => routeCodeMap[tujuan] || tujuan).join(', ') : (routeCodeMap[t.data.tujuan] || t.data.tujuan)}`, 
+            'Supir': t.data.driverName || 'N/A',
+            'No. Kendaraan': t.data.vehicleNumber || 'N/A', 
+            'Muatan': t.data.muatan || 'N/A',
+            'Uang Jalan': idr(t.data.uangJalan),
+            'Tanggal': fmtDate(t.data.tanggal), 
+            'Status': statusMap[t.data.status] || t.data.status
+          }));
+          bodyForPDF = dataForExcel.map(Object.values);
+          headers = ["Rute", "Supir", "No. Kendaraan", "Muatan", "Uang Jalan", "Tanggal", "Status"];
+          filename = 'Laporan_Perjalanan';
+          title = `Laporan Perjalanan`;
+          summary = `Periode: ${fmtDate(startDate)} - ${fmtDate(endDate)}\nTotal Perjalanan: ${filteredTrips.length}`;
+          break;
+
+        case 'users':
+          const allUsersData = Object.values(allUsers);
+          dataForExcel = allUsersData.map(u => ({
+            'Nama': u.name || '-', 'Role': u.role || '-',
+            'Login Terakhir': u.lastLogin ? new Date(u.lastLogin).toLocaleString('id-ID') : '-',
+            'Status': u.online ? 'Online' : 'Offline'
+          }));
+          bodyForPDF = dataForExcel.map(Object.values);
+          headers = ["Nama", "Role", "Login Terakhir", "Status"];
+          filename = 'Laporan_Pengguna';
+          title = 'Laporan Data Pengguna';
+          summary = `Total Pengguna: ${allUsersData.length}`;
+          break;
+        case 'routes':
+          dataForExcel = allRoutes.map(r => ({ 'Kode': r.data.code, 'Alamat/Lokasi': r.data.address }));
+          bodyForPDF = dataForExcel.map(Object.values);
+          headers = ["Kode", "Alamat/Lokasi"];
+          filename = 'Laporan_Rute';
+          title = 'Laporan Data Rute';
+          summary = `Total Rute: ${allRoutes.length}`;
+          break;
+        case 'vehicles':
+          dataForExcel = allVehicles.map(v => ({ 'No. Kendaraan': v.data.vehicleNumber, 'Unit': v.data.unit, 'Kepemilikan': v.data.ownership }));
+          bodyForPDF = dataForExcel.map(Object.values);
+          headers = ["No. Kendaraan", "Unit", "Kepemilikan"];
+          filename = 'Laporan_Kendaraan';
+          title = 'Laporan Data Kendaraan';
+          summary = `Total Kendaraan: ${allVehicles.length}`;
+          break;
+      }
+      if (format === 'excel') { exportToExcel(dataForExcel, filename, title); } 
+      else if (format === 'pdf') { exportToPDF(headers, bodyForPDF, filename, title, summary); }
+    }
+    
+    async function handleBackup() {
+        console.log("Memulai proses backup...");
+        const dataToBackup = {};
+        try {
+            const usersSnap = await get(ref(db, 'users'));
+            if(usersSnap.exists()) dataToBackup.users = usersSnap.val();
+            const tripsSnap = await get(ref(db, 'trips'));
+            if(tripsSnap.exists()) dataToBackup.trips = tripsSnap.val();
+            const routesSnap = await get(ref(db, 'routes'));
+            if(routesSnap.exists()) dataToBackup.routes = routesSnap.val();
+            const vehiclesSnap = await get(ref(db, 'vehicles'));
+            if(vehiclesSnap.exists()) dataToBackup.vehicles = vehiclesSnap.val();
+            const jsonString = JSON.stringify(dataToBackup, null, 2);
+            const blob = new Blob([jsonString], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            const date = new Date().toISOString().slice(0, 10);
+            a.download = `backup-sla-trucking-${date}.json`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+            alert('Backup berhasil diunduh!');
+        } catch (error) {
+            console.error("Gagal melakukan backup:", error);
+            alert(`Gagal melakukan backup: ${error.message}.`);
+        }
+    }
+
+    async function handleRestore() {
+        const file = elements.restoreFileInput.files[0];
+        if (!file) { alert('Silakan pilih file backup terlebih dahulu.'); return; }
+        if (!confirm('PERINGATAN!\n\nAnda akan menimpa SEMUA data yang ada dengan data dari file ini. Aksi ini tidak dapat dibatalkan.\n\nApakah Anda benar-benar yakin ingin melanjutkan?')) { return; }
+        if (!confirm('KONFIRMASI AKHIR!\n\nIni adalah kesempatan terakhir untuk membatalkan. Setelah ini, data lama akan hilang selamanya.\n\nLanjutkan pemulihan data?')) { return; }
+        const reader = new FileReader();
+        reader.onload = async (event) => {
+            try {
+                const data = JSON.parse(event.target.result);
+                elements.restoreStatus.style.display = 'block';
+                elements.restoreStatus.textContent = 'Memulihkan data... Harap jangan tutup halaman ini.';
+                if (!data.users || !data.trips || !data.routes || !data.vehicles) {
+                    throw new Error("File backup tidak valid atau rusak (salah satu node utama hilang).");
+                }
+                await set(ref(db), data);
+                elements.restoreStatus.textContent = '✔️ Data berhasil dipulihkan. Halaman akan dimuat ulang.';
+                alert('Data berhasil dipulihkan. Sistem akan dimuat ulang sekarang.');
+                setTimeout(() => window.location.reload(), 2000);
+            } catch (error) {
+                console.error("Gagal memulihkan data:", error);
+                elements.restoreStatus.textContent = `Gagal: ${error.message}`;
+                alert(`Gagal memulihkan data: ${error.message}`);
+            }
+        };
+        reader.onerror = () => { alert('Gagal membaca file.'); };
+        reader.readAsText(file);
+    }
+
+    elements.downloadBackupBtn.addEventListener('click', handleBackup);
+    elements.restoreBackupBtn.addEventListener('click', handleRestore);
+    elements.reportType.addEventListener('change', (e) => {
+        elements.dateFilterContainer.style.display = (e.target.value === 'trips') ? 'grid' : 'none';
+    });
+    elements.exportExcelBtn.addEventListener('click', () => handleExport('excel'));
+    elements.exportPdfBtn.addEventListener('click', () => handleExport('pdf'));
+  </script>
+</body>
+</html>
