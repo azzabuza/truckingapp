@@ -772,6 +772,7 @@ document.addEventListener('DOMContentLoaded', () => {
     let allVehicles = [];
     let routeCodeMap = {};
     let currentTripForInvoice = null;
+    let deletionRequestListenerAttached = false; // Flag to prevent multiple listeners
     let currentPage = 1;
     let currentUserPage = 1;
     let currentRoutePage = 1;
@@ -903,12 +904,11 @@ document.addEventListener('DOMContentLoaded', () => {
         if (currentUserData.role === 'super admin') {
             elements.lockdownMenuItem.style.display = 'block';
             elements.backupMenuItem.style.display = 'block';
-            elements.requestsMenuItem.style.display = 'block'; // Tampilkan menu permintaan
+            elements.requestsMenuItem.style.display = 'block';
             const adminOption = el('option', 'Admin', { value: 'admin' });
             if (!elements.newUserRole.querySelector('option[value="admin"]')) {
               elements.newUserRole.appendChild(adminOption);
             }
-            loadDeletionRequests(); // Muat permintaan untuk super admin
         }
         
         const presenceRef = ref(db, `users/${user.uid}/online`);
@@ -947,6 +947,10 @@ document.addEventListener('DOMContentLoaded', () => {
             displayLockdownUsers();
             loadDashboardStats();
             loadRoleStats(); 
+            // **PERBAIKAN**: Panggil listener permintaan HANYA setelah data user dimuat
+            if (currentUserData && currentUserData.role === 'super admin' && !deletionRequestListenerAttached) {
+                setupDeletionRequestListener();
+            }
         });
         onValue(ref(db, 'trips'), (snapshot) => {
             allTrips = [];
@@ -975,7 +979,9 @@ document.addEventListener('DOMContentLoaded', () => {
         elements.searchFinance.oninput = () => displayFinance(1);
     }
     
-    function loadDeletionRequests() {
+    // **PERBAIKAN**: Fungsi baru untuk mengatur listener
+    function setupDeletionRequestListener() {
+      deletionRequestListenerAttached = true; // Set flag agar tidak dipanggil berulang kali
       onValue(ref(db, 'deletion_requests'), (snapshot) => {
         const pendingRequestsRows = [];
         if (snapshot.exists()) {
@@ -984,7 +990,8 @@ document.addEventListener('DOMContentLoaded', () => {
             if (req.status === 'pending') {
               const reqId = child.key;
               const tr = el('tr');
-              const requesterName = allUsers[req.requestedBy]?.name || 'Pengguna Dihapus';
+              // Pastikan allUsers sudah ada sebelum mengaksesnya
+              const requesterName = (allUsers && allUsers[req.requestedBy]?.name) ? allUsers[req.requestedBy].name : 'Pengguna Dihapus';
               tr.innerHTML = `
                   <td data-label="Tipe Data">${req.type}</td>
                   <td data-label="Detail Data">${req.itemName}</td>
@@ -1002,7 +1009,8 @@ document.addEventListener('DOMContentLoaded', () => {
             }
           });
         }
-        elements.requestList.innerHTML = ''; // Clear existing content
+        
+        elements.requestList.innerHTML = ''; // Selalu bersihkan tabel sebelum diisi ulang
         if (pendingRequestsRows.length > 0) {
           pendingRequestsRows.forEach(row => elements.requestList.appendChild(row));
         } else {
