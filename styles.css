@@ -561,7 +561,6 @@ td {
   color: var(--slate-gray);
 }
 tbody tr { border: none; }
-tbody tr:hover { background-color: var(--gunmetal); }
 .table-controls {
   box-sizing: border-box;
   margin: 0 0 1rem 0;
@@ -1246,7 +1245,6 @@ body.light-mode textarea:focus {
 body.light-mode input::file-selector-button { color: var(--text-inverse-dark-blue-gray); }
 body.light-mode table th { background-color: #f1f5f9; color: var(--slate-gray); border-bottom: 1px solid var(--border-gunmetal); }
 body.light-mode table td { background-color: var(--dark-slate-blue); border-bottom: 1px solid var(--border-gunmetal); }
-body.light-mode tbody tr:hover { background-color: #f8fafc; }
 body.light-mode tbody tr:last-child td { border-bottom: none; }
 body.light-mode .modal-content { background-color: var(--dark-slate-blue); border: 1px solid var(--border-gunmetal); }
 body.light-mode .modal-quote { background-color: var(--light-gunmetal); }
