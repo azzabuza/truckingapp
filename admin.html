@@ -979,7 +979,7 @@ document.addEventListener('DOMContentLoaded', () => {
         elements.searchFinance.oninput = () => displayFinance(1);
     }
     
-    // **PERBAIKAN**: Fungsi baru untuk mengatur listener
+    // **PERBAIKAN**: Fungsi baru untuk mengatur listener agar urutan pemuatan data benar
     function setupDeletionRequestListener() {
       deletionRequestListenerAttached = true; // Set flag agar tidak dipanggil berulang kali
       onValue(ref(db, 'deletion_requests'), (snapshot) => {
