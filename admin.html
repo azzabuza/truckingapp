@@ -947,7 +947,7 @@ document.addEventListener('DOMContentLoaded', () => {
             displayLockdownUsers();
             loadDashboardStats();
             loadRoleStats(); 
-            // **PERBAIKAN**: Panggil listener permintaan HANYA setelah data user dimuat
+            // Panggil listener permintaan HANYA setelah data user dimuat untuk pertama kali
             if (currentUserData && currentUserData.role === 'super admin' && !deletionRequestListenerAttached) {
                 setupDeletionRequestListener();
             }
@@ -979,42 +979,53 @@ document.addEventListener('DOMContentLoaded', () => {
         elements.searchFinance.oninput = () => displayFinance(1);
     }
     
-    // **PERBAIKAN**: Fungsi baru untuk mengatur listener agar urutan pemuatan data benar
     function setupDeletionRequestListener() {
-      deletionRequestListenerAttached = true; // Set flag agar tidak dipanggil berulang kali
+      deletionRequestListenerAttached = true; 
       onValue(ref(db, 'deletion_requests'), (snapshot) => {
-        const pendingRequestsRows = [];
-        if (snapshot.exists()) {
-          snapshot.forEach(child => {
-            const req = child.val();
-            if (req.status === 'pending') {
-              const reqId = child.key;
-              const tr = el('tr');
-              // Pastikan allUsers sudah ada sebelum mengaksesnya
-              const requesterName = (allUsers && allUsers[req.requestedBy]?.name) ? allUsers[req.requestedBy].name : 'Pengguna Dihapus';
-              tr.innerHTML = `
-                  <td data-label="Tipe Data">${req.type}</td>
-                  <td data-label="Detail Data">${req.itemName}</td>
-                  <td data-label="Diminta Oleh">${requesterName}</td>
-                  <td data-label="Tanggal">${new Date(req.requestedAt).toLocaleString('id-ID')}</td>
-              `;
-              const actionsCell = el('td', '', { 'data-label': 'Aksi' });
-              const approveBtn = el('button', 'Setujui', { class: 'btn-sm success' });
-              approveBtn.onclick = () => handleRequest(reqId, 'approve');
-              const rejectBtn = el('button', 'Tolak', { class: 'btn-sm danger' });
-              rejectBtn.onclick = () => handleRequest(reqId, 'reject');
-              actionsCell.append(approveBtn, rejectBtn);
-              tr.appendChild(actionsCell);
-              pendingRequestsRows.push(tr);
-            }
-          });
+        const requestListBody = elements.requestList;
+        requestListBody.innerHTML = ''; 
+
+        if (!snapshot.exists() || snapshot.val() === null) {
+          requestListBody.innerHTML = '<tr><td colspan="5" class="empty-state">Tidak ada permintaan ditemukan.</td></tr>';
+          return;
         }
-        
-        elements.requestList.innerHTML = ''; // Selalu bersihkan tabel sebelum diisi ulang
+
+        if (Object.keys(allUsers).length === 0) {
+            requestListBody.innerHTML = '<tr><td colspan="5" class="empty-state">Memuat data pengguna...</td></tr>';
+            return;
+        }
+
+        const pendingRequestsRows = [];
+        snapshot.forEach(child => {
+          const req = child.val();
+          if (req.status === 'pending') {
+            const reqId = child.key;
+            const requesterName = allUsers[req.requestedBy]?.name || 'Pengguna Dihapus';
+            const tr = el('tr');
+
+            tr.innerHTML = `
+              <td data-label="Tipe Data">${req.type}</td>
+              <td data-label="Detail Data">${req.itemName}</td>
+              <td data-label="Diminta Oleh">${requesterName}</td>
+              <td data-label="Tanggal">${new Date(req.requestedAt).toLocaleString('id-ID')}</td>
+            `;
+
+            const actionsCell = el('td', '', { 'data-label': 'Aksi' });
+            const approveBtn = el('button', '<i class="fas fa-check"></i> Setujui', { class: 'btn-sm success' });
+            approveBtn.onclick = () => handleRequest(reqId, 'approve');
+            const rejectBtn = el('button', '<i class="fas fa-times"></i> Tolak', { class: 'btn-sm danger' });
+            rejectBtn.onclick = () => handleRequest(reqId, 'reject');
+
+            actionsCell.append(approveBtn, rejectBtn);
+            tr.appendChild(actionsCell);
+            pendingRequestsRows.push(tr);
+          }
+        });
+
         if (pendingRequestsRows.length > 0) {
-          pendingRequestsRows.forEach(row => elements.requestList.appendChild(row));
+          pendingRequestsRows.forEach(row => requestListBody.appendChild(row));
         } else {
-          elements.requestList.innerHTML = '<tr><td colspan="5" class="empty-state">Tidak ada permintaan ditemukan.</td></tr>';
+          requestListBody.innerHTML = '<tr><td colspan="5" class="empty-state">Tidak ada permintaan yang menunggu persetujuan.</td></tr>';
         }
       });
     }
