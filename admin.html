@@ -952,7 +952,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const paginatedActivities = allTrips.slice(start, start + activityRowsPerPage);
         elements.activityPaginationControls.style.display = allTrips.length >= 20 ? 'flex' : 'none';
         if (allTrips.length === 0) {
-            elements.recentActivityList.innerHTML = '<tr><td colspan="4" class="empty-state">Belum ada aktivitas perjalanan.</td></tr>';
+            elements.recentActivityList.innerHTML = '<tr><td colspan="4" class="empty-state" style="text-align: center; padding: 1rem;">Belum ada aktivitas perjalanan.</td></tr>';
         } else {
             paginatedActivities.forEach(tripEntry => {
                 const trip = tripEntry.data;
@@ -1163,7 +1163,7 @@ document.addEventListener('DOMContentLoaded', () => {
       }
       elements.paginationControls.style.display = filteredTrips.length > rowsPerPage ? 'flex' : 'none';
       if (paginatedTrips.length === 0) {
-        elements.tripList.innerHTML = '<tr><td colspan="9" class="empty-state">Tidak ada perjalanan ditemukan.</td></tr>';
+        elements.tripList.innerHTML = '<tr><td colspan="9" class="empty-state" style="text-align: center; padding: 1rem;">Tidak ada perjalanan ditemukan.</td></tr>';
       } else {
         paginatedTrips.forEach(tripEntry => {
             const tripId = tripEntry.id;
@@ -1435,7 +1435,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
       elements.financePaginationControls.style.display = filteredTrips.length > rowsPerPage ? 'flex' : 'none';
       if (paginatedTrips.length === 0) {
-        elements.financeList.innerHTML = '<tr><td colspan="5" class="empty-state">Tidak ada data keuangan ditemukan.</td></tr>';
+        elements.financeList.innerHTML = '<tr><td colspan="5" class="empty-state" style="text-align: center; padding: 1rem;">Tidak ada data keuangan ditemukan.</td></tr>';
       } else {
         paginatedTrips.forEach(tripEntry => {
           const { id: tripId, data: trip } = tripEntry;
@@ -1567,7 +1567,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }); 
         const createActivityTable = (role, title) => { 
             let tableHtml = `<h4>${title} (${activities[role].length} Total Aksi)</h4>`; 
-            if (activities[role].length === 0) { return tableHtml + `<p class="empty-state">Belum ada aktivitas.</p>`; } 
+            if (activities[role].length === 0) { return tableHtml + `<p class="empty-state" style="text-align: center; padding: 1rem;">Belum ada aktivitas.</p>`; } 
             const sortedActivities = activities[role].sort((a, b) => b.time - a.time).slice(0, 15); 
             tableHtml += `<div class="table-responsive"><table class="performance-table"><thead><tr><th>Nama</th><th>Aksi</th><th>Waktu</th></tr></thead><tbody>`; 
             sortedActivities.forEach(act => { 
