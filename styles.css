@@ -46,7 +46,7 @@
   --font-main: "Poppins", sans-serif;
   
   /* Added for responsiveness */
-  --sidebar-width: 300px;
+  --sidebar-width: 350px;
 }
 
 
@@ -1268,7 +1268,7 @@ body.light-mode .replied-text { color: var(--slate-gray); opacity: 1; }
 /* --- Tablet (max-width: 1024px) --- */
 @media (max-width: 1024px) {
     :root {
-        --sidebar-width: 280px;
+        --sidebar-width: 300px;
     }
 
     html {
