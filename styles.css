@@ -1419,8 +1419,11 @@ body.light-mode .replied-text { color: var(--slate-gray); opacity: 1; }
     .table-responsive tr {
         border: 1px solid var(--border-gunmetal);
         border-radius: 0.5rem;
-        margin-bottom: 1rem;
+        margin: 0 0 1rem 0;
         padding: 0.5rem;
+    }
+  .table-responsive tr:last-child {
+        margin: 0;
     }
     
     .table-responsive td {
