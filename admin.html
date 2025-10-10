@@ -977,38 +977,37 @@ document.addEventListener('DOMContentLoaded', () => {
     
     function loadDeletionRequests() {
       onValue(ref(db, 'deletion_requests'), (snapshot) => {
-          elements.requestList.innerHTML = '';
-          if (!snapshot.exists()) {
-              elements.requestList.innerHTML = '<tr><td colspan="5" class="empty-state">Tidak ada permintaan penghapusan.</td></tr>';
-              return;
-          }
-          let hasPendingRequests = false;
+        const pendingRequestsRows = [];
+        if (snapshot.exists()) {
           snapshot.forEach(child => {
-              const req = child.val();
+            const req = child.val();
+            if (req.status === 'pending') {
               const reqId = child.key;
-              if (req.status === 'pending') {
-                  hasPendingRequests = true;
-                  const tr = el('tr');
-                  const requesterName = allUsers[req.requestedBy]?.name || 'Admin Dihapus';
-                  tr.innerHTML = `
-                      <td data-label="Tipe Data">${req.type}</td>
-                      <td data-label="Detail Data">${req.itemName}</td>
-                      <td data-label="Diminta Oleh">${requesterName}</td>
-                      <td data-label="Tanggal">${new Date(req.requestedAt).toLocaleString('id-ID')}</td>
-                  `;
-                  const actionsCell = el('td', '', {'data-label': 'Aksi'});
-                  const approveBtn = el('button', 'Setujui', { class: 'btn-sm success' });
-                  approveBtn.onclick = () => handleRequest(reqId, 'approve');
-                  const rejectBtn = el('button', 'Tolak', { class: 'btn-sm danger' });
-                  rejectBtn.onclick = () => handleRequest(reqId, 'reject');
-                  actionsCell.append(approveBtn, rejectBtn);
-                  tr.appendChild(actionsCell);
-                  elements.requestList.appendChild(tr);
-              }
+              const tr = el('tr');
+              const requesterName = allUsers[req.requestedBy]?.name || 'Pengguna Dihapus';
+              tr.innerHTML = `
+                  <td data-label="Tipe Data">${req.type}</td>
+                  <td data-label="Detail Data">${req.itemName}</td>
+                  <td data-label="Diminta Oleh">${requesterName}</td>
+                  <td data-label="Tanggal">${new Date(req.requestedAt).toLocaleString('id-ID')}</td>
+              `;
+              const actionsCell = el('td', '', { 'data-label': 'Aksi' });
+              const approveBtn = el('button', 'Setujui', { class: 'btn-sm success' });
+              approveBtn.onclick = () => handleRequest(reqId, 'approve');
+              const rejectBtn = el('button', 'Tolak', { class: 'btn-sm danger' });
+              rejectBtn.onclick = () => handleRequest(reqId, 'reject');
+              actionsCell.append(approveBtn, rejectBtn);
+              tr.appendChild(actionsCell);
+              pendingRequestsRows.push(tr);
+            }
           });
-          if (!hasPendingRequests) {
-              elements.requestList.innerHTML = '<tr><td colspan="5" class="empty-state">Tidak ada permintaan penghapusan yang menunggu.</td></tr>';
-          }
+        }
+        elements.requestList.innerHTML = ''; // Clear existing content
+        if (pendingRequestsRows.length > 0) {
+          pendingRequestsRows.forEach(row => elements.requestList.appendChild(row));
+        } else {
+          elements.requestList.innerHTML = '<tr><td colspan="5" class="empty-state">Tidak ada permintaan ditemukan.</td></tr>';
+        }
       });
     }
 
