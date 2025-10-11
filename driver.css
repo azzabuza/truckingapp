@@ -247,7 +247,6 @@ input{
   color: var(--text-link);
 }
 .trip-card-actions {
-  border-top: 1px solid var(--border-color);
   padding: 0;
   display: flex;
   gap: 1rem;
@@ -257,7 +256,6 @@ input{
   font-size: 1.4rem;
   color: var(--text-inverse);
   padding: 1rem 2rem;
-  border-radius: 0.5rem;
   font-weight: 500;
 }
 .trip-card-actions button.start { background: var(--blue); }
