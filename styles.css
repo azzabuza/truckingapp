@@ -1069,19 +1069,6 @@ input:checked + .slider:before {
 }
 .close-modal:hover { color: var(--light-lavender); }
 
-.mobile-menu-btn {
-  display: none;
-  width: 4rem;
-  height: 4rem;
-  flex-shrink: 0;
-  background: transparent;
-  color: var(--slate-gray);
-  padding: 1rem;
-  font-size: 1.8rem;
-  border: none
-  margin: 0;
-}
-
 .modal-menu-list {
   box-sizing: border-box;
   display: flex;
