@@ -401,6 +401,11 @@ button, .button {
   transition: all 0.3s ease;
   width: 100%;
 }
+button:disabled, .button:disabled {
+  background: var(--gray);
+  color: var(--light-gray);
+  cursor: not-allowed;
+}
 .logout-button {
   box-sizing:border-box;
   background: transparent;
