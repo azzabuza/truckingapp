@@ -43,12 +43,12 @@ html {
   font-size: 10px;
 }
 body {
-  background-color: var(--bg-main);
+  background: var(--bg-main);
   font-family: var(--font-main);
   color: var(--text-primary);
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
-  padding-bottom: 7rem; /* Space for bottom nav */
+  padding-bottom: 7rem;
 }
 h1, h2, h3, h4 {
   font-weight: 600;
@@ -65,26 +65,13 @@ button {
 hr {
     border: 0;
     height: 1px;
-    background-color: var(--border-color);
+    background: var(--border-color);
     margin: 2rem 0;
-}
-
-/* === LAYOUT & CARD === */
-.content-wrapper {
-  padding: 0 0 6rem 0;
-}
-.main-content {
-  display: none;
-  padding: 2rem;
-}
-.main-content.active {
-    display: block;
-    animation: fadeIn 0.4s ease-in-out;
 }
 input, select, textarea {
   box-sizing: border-box;
   display: inline-block;
-  background: var(--dark-slate-blue);
+  background: var(--bg-input);
   font-family: inherit;
   color: var(--light-lavender);
   caret-color: var(--light-lavender);
@@ -98,6 +85,19 @@ input, select, textarea {
   transition: border-color 0.3s ease, box-shadow 0.3s ease;
   appearance: none;
   -webkit-appearance: none;
+}
+
+/* === LAYOUT & CARD === */
+.content-wrapper {
+  padding: 0 0 6rem 0;
+}
+.main-content {
+  display: none;
+  padding: 2rem;
+}
+.main-content.active {
+    display: block;
+    animation: fadeIn 0.4s ease-in-out;
 }
 @keyframes fadeIn {
   from { opacity: 0; transform: translateY(1rem); }
@@ -114,7 +114,7 @@ input, select, textarea {
 .main-header p { font-size: 1.5rem; }
 
 .card {
-  background-color: var(--bg-card);
+  background: var(--bg-card);
   border: 1px solid var(--border-color);
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
   border-radius: 1rem;
@@ -144,7 +144,7 @@ input, select, textarea {
   gap: 1.5rem;
 }
 .stat-card {
-  background-color: var(--bg-card);
+  background: var(--bg-card);
   border-radius: 1rem;
   padding: 1.5rem;
   text-align: center;
@@ -186,7 +186,7 @@ input, select, textarea {
   color: var(--text-link);
 }
 .tab-link.active {
-  background-color: var(--blue);
+  background: var(--blue);
   color: var(--text-inverse);
   border-color: var(--border-color);
 }
@@ -195,7 +195,7 @@ input, select, textarea {
 
 /* Trip Card */
 .trip-card {
-  background-color: var(--bg-card);
+  background: var(--bg-card);
   border: 1px solid var(--border-color);
   border-radius: 1rem;
   margin-bottom: 2rem;
@@ -242,13 +242,13 @@ input, select, textarea {
   border-radius: 0.5rem;
   font-weight: 500;
 }
-.trip-card-actions button.start { background-color: var(--blue); }
-.trip-card-actions button.arriving { background-color: var(--orange); }
-.trip-card-actions button.confirm { background-color: var(--green); }
+.trip-card-actions button.start { background: var(--blue); }
+.trip-card-actions button.arriving { background: var(--orange); }
+.trip-card-actions button.confirm { background: var(--green); }
 
 /* Profile Page */
 .profile-card {
-  background-color: var(--bg-card);
+  background: var(--bg-card);
   border-radius: 1rem;
   padding: 2rem;
   border: 1px solid var(--border-color);
@@ -288,11 +288,11 @@ input, select, textarea {
   width: 100%;
   height: 100%;
   overflow: auto;
-  background-color: rgba(0,0,0,0.6);
+  background: rgba(0,0,0,0.6);
   animation: fadeIn 0.3s;
 }
 .modal-content {
-  background-color: var(--bg-card);
+  background: var(--bg-card);
   margin: 20% auto;
   padding: 2rem;
   width: 90%;
@@ -322,8 +322,8 @@ input, select, textarea {
 .detail-grid .value { color: var(--text-primary); }
 
 .confirmation-modal-body .input-group { display: flex; gap: 1rem; margin-bottom: 1.5rem; }
-.confirmation-modal-body input { flex-grow: 1; background-color: var(--bg-input); border: 1px solid var(--border-color); color: var(--text-primary); }
-.confirmation-modal-body #scanBtn { width: auto; background-color: var(--bg-hover); color: var(--text-primary); border: 1px solid var(--border-color); }
+.confirmation-modal-body input { flex-grow: 1; background: var(--bg-input); border: 1px solid var(--border-color); color: var(--text-primary); }
+.confirmation-modal-body #scanBtn { width: auto; background: var(--bg-hover); color: var(--text-primary); border: 1px solid var(--border-color); }
 .confirmation-modal-body video { width: 100%; max-width: 400px; border-radius: 1rem; display: none; }
 .form-status { display: none; margin-top: 1rem; font-weight: 500; }
 button {
@@ -353,7 +353,7 @@ button {
   right: 0;
   display: flex;
   justify-content: space-around;
-  background-color: var(--bg-card);
+  background: var(--bg-card);
   border-top: 1px solid var(--border-color);
   box-shadow: 0 -2px 5px rgba(0,0,0,0.05);
   padding: 0.5rem 0;
