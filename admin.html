@@ -914,30 +914,11 @@ document.addEventListener('DOMContentLoaded', () => {
         await set(presenceRef, true);
         onDisconnect(presenceRef).set(false);
         
-        loadRoutes();
         loadInitialData();
 
       } catch (e) { console.error("Error saat inisialisasi admin:", e); }
     });
-
-    function loadRoutes() {
-        onValue(ref(db, 'routes'), (snapshot) => {
-            allRoutes = [];
-            routeCodeMap = {};
-            if (snapshot.exists()) {
-                snapshot.forEach(child => {
-                    const routeData = { id: child.key, ...child.val() };
-                    allRoutes.push(routeData);
-                    routeCodeMap[routeData.address] = routeData.code;
-                });
-            }
-            displayRoutes(currentRoutePage);
-            displayTrips(currentPage);
-            displayFinance(currentFinancePage);
-            loadDashboardStats();
-        });
-    }
-
+    
     function loadInitialData() {
         onValue(ref(db, 'users'), (snapshot) => {
             allUsers = snapshot.val() || {};
@@ -957,6 +938,21 @@ document.addEventListener('DOMContentLoaded', () => {
             loadDashboardStats();
             loadRoleStats(); 
         });
+        onValue(ref(db, 'routes'), (snapshot) => {
+            allRoutes = [];
+            routeCodeMap = {};
+            if (snapshot.exists()) {
+                snapshot.forEach(child => {
+                    const routeData = { id: child.key, ...child.val() };
+                    allRoutes.push(routeData);
+                    routeCodeMap[routeData.address] = routeData.code;
+                });
+            }
+            displayRoutes(currentRoutePage);
+            displayTrips(currentPage); 
+            displayFinance(currentFinancePage);
+            loadDashboardStats();
+        });
         onValue(ref(db, 'vehicles'), (snapshot) => {
             allVehicles = [];
             if (snapshot.exists()) { snapshot.forEach(child => { allVehicles.push({ id: child.key, ...child.val() }); }); }
@@ -964,18 +960,22 @@ document.addEventListener('DOMContentLoaded', () => {
             loadDashboardStats();
         });
         
-        if (currentUserData.role === 'super admin') {
-            onValue(ref(db, 'deletion_requests'), (snapshot) => {
-                allDeletionRequests = [];
-                if(snapshot.exists()) {
-                    snapshot.forEach(child => {
-                        allDeletionRequests.push({ id: child.key, ...child.val() });
-                    });
-                }
-                allDeletionRequests.sort((a,b) => b.timestamp - a.timestamp);
-                displayDeletionRequests();
-            });
-        }
+        onValue(ref(db, 'deletion_requests'), (snapshot) => {
+            allDeletionRequests = [];
+            if(snapshot.exists()) {
+                snapshot.forEach(child => {
+                    allDeletionRequests.push({ id: child.key, ...child.val() });
+                });
+            }
+            allDeletionRequests.sort((a,b) => b.timestamp - a.timestamp);
+            if (currentUserData && currentUserData.role === 'super admin') {
+              displayDeletionRequests();
+            }
+            // Re-render relevant views that depend on deletion requests
+            displayUsers(currentUserPage);
+            displayRoutes(currentRoutePage);
+            displayVehicles(currentVehiclePage);
+        });
         
         elements.filterRole.onchange = () => displayUsers(1);
         elements.searchName.oninput = () => displayUsers(1);
@@ -1282,8 +1282,12 @@ document.addEventListener('DOMContentLoaded', () => {
         if (currentPage < totalPages) { displayTrips(currentPage + 1); } 
     });
 
-    async function requestDeletion(type, itemId, itemData) {
+    async function requestDeletion(type, itemId, itemData, buttonElement) {
         if (confirm(`Anda akan meminta penghapusan untuk:\nJenis: ${type}\nData: ${itemData}\n\nLanjutkan?`)) {
+            if (buttonElement) {
+                buttonElement.disabled = true;
+                buttonElement.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Meminta...';
+            }
             try {
                 const requestData = {
                     type,
@@ -1296,8 +1300,15 @@ document.addEventListener('DOMContentLoaded', () => {
                 };
                 await push(ref(db, 'deletion_requests'), requestData);
                 alert('Permintaan penghapusan telah dikirim ke Super Admin.');
+                if (buttonElement) {
+                   buttonElement.innerHTML = '<i class="fa-solid fa-clock"></i> Diminta';
+                }
             } catch (error) {
                 alert(`Gagal mengirim permintaan: ${error.message}`);
+                if (buttonElement) {
+                    buttonElement.disabled = false; // Re-enable on failure
+                    buttonElement.innerHTML = '<i class="fa-solid fa-bell"></i> Minta Hapus';
+                }
             }
         }
     }
@@ -1329,6 +1340,8 @@ document.addEventListener('DOMContentLoaded', () => {
           const isTargetSuperAdmin = u.role === 'super admin';
           
           let actionButtonHTML = '';
+          const hasPendingRequest = allDeletionRequests.some(req => req.itemId === uid && req.status === 'pending');
+
           if (isCurrentUser) {
             actionButtonHTML = `<button class="btn-sm" disabled title="Tidak dapat melakukan aksi pada diri sendiri">Aksi</button>`;
           } else if (currentUserData.role === 'super admin') {
@@ -1340,6 +1353,8 @@ document.addEventListener('DOMContentLoaded', () => {
           } else if (currentUserData.role === 'admin') {
               if (isTargetSuperAdmin) {
                  actionButtonHTML = `<button class="btn-sm" disabled title="Admin tidak dapat menghapus Super Admin">Aksi</button>`;
+              } else if (hasPendingRequest) {
+                 actionButtonHTML = `<button class="btn-sm warm" disabled><i class="fa-solid fa-clock"></i> Diminta</button>`;
               } else {
                  actionButtonHTML = `<button class="btn-sm warm request-delete-btn" data-type="user" data-uid="${uid}" data-name="${u.name || 'tanpa nama'}"><i class="fa-solid fa-bell"></i> Minta Hapus</button>`;
               }
@@ -1381,7 +1396,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 } catch (error) { alert(`Gagal: ${error.message}`); }
             }
         } else if (target.classList.contains('request-delete-btn')) {
-             requestDeletion(type, uid, name);
+             requestDeletion(type, uid, name, target);
         }
     });
 
@@ -1408,6 +1423,7 @@ document.addEventListener('DOMContentLoaded', () => {
           const itemData = `${route.code} - ${route.address}`;
           tr.innerHTML = `<td data-label="Kode">${route.code}</td><td data-label="Rute">${route.address}</td>`;
           const actionsCell = el('td', '', {'data-label': 'Aksi'});
+          const hasPendingRequest = allDeletionRequests.some(req => req.itemId === route.id && req.status === 'pending');
           
           let actionButton;
           if (currentUserData.role === 'super admin') {
@@ -1417,9 +1433,13 @@ document.addEventListener('DOMContentLoaded', () => {
                   await set(ref(db, `routes/${route.id}`), null);
                 }
             };
-          } else {
-            actionButton = el('button', '<i class="fa-solid fa-bell"></i> Minta Hapus', { class: 'btn-sm warm' });
-            actionButton.onclick = () => requestDeletion('rute', route.id, itemData);
+          } else { // Role is admin
+            if (hasPendingRequest) {
+                actionButton = el('button', '<i class="fa-solid fa-clock"></i> Diminta', { class: 'btn-sm warm', disabled: true });
+            } else {
+                actionButton = el('button', '<i class="fa-solid fa-bell"></i> Minta Hapus', { class: 'btn-sm warm' });
+                actionButton.onclick = function() { requestDeletion('rute', route.id, itemData, this); };
+            }
           }
 
           actionsCell.appendChild(actionButton);
@@ -1465,7 +1485,8 @@ document.addEventListener('DOMContentLoaded', () => {
           const itemData = `${vehicle.vehicleNumber} (${vehicle.unit})`;
           tr.innerHTML = `<td data-label="No. Kendaraan">${vehicle.vehicleNumber}</td><td data-label="Unit">${vehicle.unit || '-'}</td><td data-label="Kepemilikan">${vehicle.ownership || '-'}</td>`;
           const actionsCell = el('td', '', {'data-label': 'Aksi'});
-          
+          const hasPendingRequest = allDeletionRequests.some(req => req.itemId === vehicle.id && req.status === 'pending');
+
           let actionButton;
           if (currentUserData.role === 'super admin') {
               actionButton = el('button', '<i class="fa-solid fa-trash"></i> Hapus', { class: 'btn-sm danger' });
@@ -1474,9 +1495,13 @@ document.addEventListener('DOMContentLoaded', () => {
                     await set(ref(db, `vehicles/${vehicle.id}`), null);
                   }
               };
-          } else {
-              actionButton = el('button', '<i class="fa-solid fa-bell"></i> Minta Hapus', { class: 'btn-sm warm' });
-              actionButton.onclick = () => requestDeletion('kendaraan', vehicle.id, itemData);
+          } else { // Role is admin
+              if (hasPendingRequest) {
+                  actionButton = el('button', '<i class="fa-solid fa-clock"></i> Diminta', { class: 'btn-sm warm', disabled: true });
+              } else {
+                  actionButton = el('button', '<i class="fa-solid fa-bell"></i> Minta Hapus', { class: 'btn-sm warm' });
+                  actionButton.onclick = function() { requestDeletion('kendaraan', vehicle.id, itemData, this); };
+              }
           }
 
           actionsCell.appendChild(actionButton);
