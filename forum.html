@@ -279,6 +279,7 @@ document.addEventListener('DOMContentLoaded', () => {
     let currentUser = null;
     let currentUserData = null;
     let allUsers = {};
+    let allGroups = {}; // [FIX] Added to store group data globally
     let activeChatId = null;
     let activeGroupData = null;
     let replyingTo = null;
@@ -419,10 +420,11 @@ document.addEventListener('DOMContentLoaded', () => {
         if (usersSnap.exists()) {
             allUsers = usersSnap.val();
         }
-        const groupsSnap = await get(ref(db, 'groups'));
-        const groupsData = groupsSnap.exists() ? groupsSnap.val() : {};
-
-        renderChatLists(groupsData); 
+        
+        onValue(ref(db, 'groups'), (snapshot) => {
+             allGroups = snapshot.val() || {}; // [FIX] Store groups globally
+             renderChatLists(allGroups); // [FIX] Re-render when group data changes
+        });
 
         Object.keys(allUsers).forEach(uid => {
             if (uid === currentUser.uid) return;
@@ -436,19 +438,18 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             });
         });
-        
-        onValue(ref(db, 'groups'), (snapshot) => {
-             renderChatLists(snapshot.val() || {});
-        });
 
         if (elements.groupList.firstChild && !activeChatId) {
             elements.groupList.firstChild.querySelector('a').click();
         }
     }
     
+    // [MODIFIED] renderChatLists function
     function renderChatLists(groupsData) {
         const groupSearchTerm = elements.searchGroup.value.toLowerCase();
         elements.groupList.innerHTML = '';
+        let groupFound = false;
+        
         const generalGroup = { id: 'general', name: 'Diskusi Umum' };
         if (generalGroup.name.toLowerCase().includes(groupSearchTerm)) {
             const li = el('li');
@@ -459,7 +460,9 @@ document.addEventListener('DOMContentLoaded', () => {
             li.append(a);
             elements.groupList.append(li);
             listenForUnread(generalGroup.id, badge);
+            groupFound = true;
         }
+
         Object.entries(groupsData).forEach(([groupId, group]) => {
             if (group.name.toLowerCase().includes(groupSearchTerm)) {
                 const isMember = group.members && group.members[currentUser.uid];
@@ -475,11 +478,21 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (isMember || isAdmin) {
                     listenForUnread(groupId, badge);
                 }
+                groupFound = true;
             }
         });
+        
+        // [NEW] Add "not found" message for groups
+        if (!groupFound && groupSearchTerm) {
+            const li = el('li');
+            li.innerHTML = `<p class="empty-state" style="padding: 1rem 0;">Grup yang dicari tidak ada</p>`;
+            elements.groupList.appendChild(li);
+        }
 
         const userSearchTerm = elements.searchUser.value.toLowerCase();
         elements.userList.innerHTML = '';
+        let userFound = false;
+
         Object.entries(allUsers).forEach(([uid, userData]) => {
             if (uid === currentUser.uid) return;
             if ((userData.name || '').toLowerCase().includes(userSearchTerm)) {
@@ -493,8 +506,16 @@ document.addEventListener('DOMContentLoaded', () => {
                 li.append(a);
                 elements.userList.append(li);
                 listenForUnread(chatId, badge);
+                userFound = true;
             }
         });
+
+        // [NEW] Add "not found" message for users
+        if (!userFound && userSearchTerm) {
+            const li = el('li');
+            li.innerHTML = `<p class="empty-state" style="padding: 1rem 0;">Nama yang dicari tidak ada</p>`;
+            elements.userList.appendChild(li);
+        }
 
         updateActiveLinkInSidebar();
     }
@@ -1124,21 +1145,11 @@ document.addEventListener('DOMContentLoaded', () => {
         elements.chatPermissionsModal.style.display = 'none';
     }
 
+    // [MODIFIED] setupEventListeners function
     function setupEventListeners() {
-        elements.searchGroup.addEventListener('input', (e) => {
-            const searchTerm = e.target.value.toLowerCase();
-            document.querySelectorAll('#group-list li').forEach(li => {
-                const name = li.textContent.toLowerCase();
-                li.style.display = name.includes(searchTerm) ? '' : 'list-item';
-            });
-        });
-        elements.searchUser.addEventListener('input', (e) => {
-            const searchTerm = e.target.value.toLowerCase();
-            document.querySelectorAll('#user-list li').forEach(li => {
-                const name = li.textContent.toLowerCase();
-                li.style.display = name.includes(searchTerm) ? '' : 'list-item';
-            });
-        });
+        // [FIX] Changed event listener to call renderChatLists
+        elements.searchGroup.addEventListener('input', () => renderChatLists(allGroups));
+        elements.searchUser.addEventListener('input', () => renderChatLists(allGroups));
 
         elements.messageForm.addEventListener('submit', (e) => {
             e.preventDefault();
