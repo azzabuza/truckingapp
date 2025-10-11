@@ -1387,11 +1387,11 @@ body.light-mode .replied-text { color: var(--slate-gray); opacity: 1; }
     }
     
     .main-content {
-        padding: 0.5rem;
+        padding: 0;
     }
     
     .content-container {
-        padding: 0.5rem;
+        padding: 1rem;
     }
 
     .card-header {
