@@ -1220,7 +1220,7 @@ body.light-mode {
 
 body.light-mode .modal-menu-button {
     background-color: var(--light-gunmetal);
-    color: var(--light-lavender);
+    color: var(--text-inverse-dark-blue-gray);
 }
 
 body.light-mode .stat-card,
