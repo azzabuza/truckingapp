@@ -321,7 +321,7 @@ input, select, textarea {
 .detail-grid .label { font-weight: 600; color: var(--text-secondary); }
 .detail-grid .value { color: var(--text-primary); }
 
-.confirmation-modal-body .input-group { display: flex; gap: 1rem; margin-bottom: 1.5rem; }
+.confirmation-modal-body .input-group { display: flex; gap: 1rem; margin-bottom: 1rem; }
 .confirmation-modal-body input { flex-grow: 1; background: var(--bg-input); border: 1px solid var(--border-color); color: var(--text-primary); }
 .confirmation-modal-body #scanBtn { width: auto; background: var(--bg-hover); color: var(--text-primary); border: 1px solid var(--border-color); }
 .confirmation-modal-body video { width: 100%; max-width: 400px; border-radius: 1rem; display: none; }
