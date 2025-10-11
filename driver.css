@@ -211,7 +211,8 @@ input{
   border: 1px solid var(--border-color);
   border-radius: 1rem;
   margin: 0 0 2rem;
-  padding: 2rem;
+  padding: 0;
+  overflow: hidden;
   transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 .trip-card:last-child {
@@ -223,14 +224,16 @@ input{
   align-items: center;
   margin-bottom: 1rem;
   cursor: pointer;
+  padding: 1rem;
 }
 .trip-card-header h3 {
   font-size: 1.8rem;
   margin: 0;
 }
 .trip-card-body {
-  padding-bottom: 1.5rem;
+  padding: 1rem;
   cursor: pointer;
+  
 }
 .trip-card-body p {
   font-size: 1.4rem;
@@ -245,7 +248,7 @@ input{
 }
 .trip-card-actions {
   border-top: 1px solid var(--border-color);
-  padding-top: 1.5rem;
+  padding: 0;
   display: flex;
   gap: 1rem;
 }
