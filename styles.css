@@ -1095,7 +1095,7 @@ input:checked + .slider:before {
   margin: 0;
   font-size: 1.5rem;
   text-align: left;
-  background: var(--gunmetal);
+  background: var(--gradient-feme);
   color: var(--light-lavender);
   border-radius: 0.5rem;
   border: none;
@@ -1219,7 +1219,6 @@ body.light-mode {
 }
 
 body.light-mode .modal-menu-button {
-    background: var(--light-gunmetal);
     color: var(--text-inverse-dark-blue-gray);
 }
 
