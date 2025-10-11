@@ -68,7 +68,19 @@ hr {
     background: var(--border-color);
     margin: 2rem 0;
 }
-input, select, textarea {
+button{
+  box-sizing: border-box;
+  background: var(--gradient-feme);
+  color: var(--text-inverse-dark-blue-gray);
+  padding: 1rem 2rem;
+  margin: 0;
+  border-radius: 0.5rem;
+  font-size: 1.5rem;
+  font-weight: 500;
+  transition: all 0.3s ease;
+  width: 100%;
+}
+input{
   box-sizing: border-box;
   display: inline-block;
   background: var(--bg-input);
