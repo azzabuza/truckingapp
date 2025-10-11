@@ -28,7 +28,7 @@
             <input type="text" id="searchGroup" style="background: var(--gunmetal);" placeholder="Cari grup">
           </div>
           <ul id="group-list">
-            </ul>
+             </ul>
           <div class="sidebar-chat-header">
             <h4 class="chat-list-header"><i class="fa-solid fa-person"></i> Personal Chat</h4>
           </div>
@@ -285,6 +285,7 @@ document.addEventListener('DOMContentLoaded', () => {
     let messageToReport = null;
     let messageToEdit = null;
     let chatListeners = {};
+    let activeChatMessagesListener = null; // This will hold the unsubscribe function for the active chat
     
     const elements = {
         userName: document.getElementById('userName'),
@@ -418,10 +419,10 @@ document.addEventListener('DOMContentLoaded', () => {
         if (usersSnap.exists()) {
             allUsers = usersSnap.val();
         }
-        
-        onValue(ref(db, 'groups'), (snapshot) => {
-            renderChatLists(snapshot.val());
-        });
+        const groupsSnap = await get(ref(db, 'groups'));
+        const groupsData = groupsSnap.exists() ? groupsSnap.val() : {};
+
+        renderChatLists(groupsData); 
 
         Object.keys(allUsers).forEach(uid => {
             if (uid === currentUser.uid) return;
@@ -435,6 +436,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             });
         });
+        
+        onValue(ref(db, 'groups'), (snapshot) => {
+             renderChatLists(snapshot.val() || {});
+        });
 
         if (elements.groupList.firstChild && !activeChatId) {
             elements.groupList.firstChild.querySelector('a').click();
@@ -442,20 +447,21 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     
     function renderChatLists(groupsData) {
+        const groupSearchTerm = elements.searchGroup.value.toLowerCase();
         elements.groupList.innerHTML = '';
         const generalGroup = { id: 'general', name: 'Diskusi Umum' };
-        
-        const liGeneral = el('li');
-        const aGeneral = el('a', `<span><i class="fa-solid fa-user-group"></i> ${generalGroup.name}</span>`, { href: '#', 'data-chat-id': 'general' });
-        const badgeGeneral = el('span', '0', { class: 'unread-badge', style: 'display: none;' });
-        aGeneral.append(badgeGeneral);
-        aGeneral.onclick = (e) => { e.preventDefault(); openChat(generalGroup.id, generalGroup.name, 'group', generalGroup); };
-        liGeneral.append(aGeneral);
-        elements.groupList.append(liGeneral);
-        listenForUnread(generalGroup.id, badgeGeneral);
-
-        if (groupsData) {
-            Object.entries(groupsData).forEach(([groupId, group]) => {
+        if (generalGroup.name.toLowerCase().includes(groupSearchTerm)) {
+            const li = el('li');
+            const a = el('a', `<span><i class="fa-solid fa-user-group"></i> ${generalGroup.name}</span>`, { href: '#', 'data-chat-id': 'general' });
+            const badge = el('span', '0', { class: 'unread-badge', style: 'display: none;' });
+            a.append(badge);
+            a.onclick = (e) => { e.preventDefault(); openChat(generalGroup.id, generalGroup.name, 'group', generalGroup); };
+            li.append(a);
+            elements.groupList.append(li);
+            listenForUnread(generalGroup.id, badge);
+        }
+        Object.entries(groupsData).forEach(([groupId, group]) => {
+            if (group.name.toLowerCase().includes(groupSearchTerm)) {
                 const isMember = group.members && group.members[currentUser.uid];
                 const isAdmin = currentUserData.role === 'admin' || currentUserData.role === 'super admin';
                 const li = el('li');
@@ -469,22 +475,25 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (isMember || isAdmin) {
                     listenForUnread(groupId, badge);
                 }
-            });
-        }
-        
+            }
+        });
+
+        const userSearchTerm = elements.searchUser.value.toLowerCase();
         elements.userList.innerHTML = '';
         Object.entries(allUsers).forEach(([uid, userData]) => {
             if (uid === currentUser.uid) return;
-            const chatId = [currentUser.uid, uid].sort().join('_');
-            const li = el('li');
-            const onlineIndicator = userData.online ? '<i class="fa-solid fa-user status-online"></i>' : '<i class="fa-solid fa-user status-offline"></i>';
-            const a = el('a', `<span>${onlineIndicator} ${userData.name || 'Tanpa Nama'}</span>`, { href: '#', 'data-chat-id': chatId });
-            const badge = el('span', '0', { class: 'unread-badge', style: 'display: none;' });
-            a.append(badge);
-            a.onclick = (e) => { e.preventDefault(); openChat(chatId, userData.name, 'personal', { otherUserId: uid }); };
-            li.append(a);
-            elements.userList.append(li);
-            listenForUnread(chatId, badge);
+            if ((userData.name || '').toLowerCase().includes(userSearchTerm)) {
+                const chatId = [currentUser.uid, uid].sort().join('_');
+                const li = el('li');
+                const onlineIndicator = userData.online ? '<i class="fa-solid fa-user status-online"></i>' : '<i class="fa-solid fa-user status-offline"></i>';
+                const a = el('a', `<span>${onlineIndicator} ${userData.name || 'Tanpa Nama'}</span>`, { href: '#', 'data-chat-id': chatId });
+                const badge = el('span', '0', { class: 'unread-badge', style: 'display: none;' });
+                a.append(badge);
+                a.onclick = (e) => { e.preventDefault(); openChat(chatId, userData.name, 'personal', { otherUserId: uid }); };
+                li.append(a);
+                elements.userList.append(li);
+                listenForUnread(chatId, badge);
+            }
         });
 
         updateActiveLinkInSidebar();
@@ -600,7 +609,16 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
+    // =================================================================
+    // BUG FIX AREA: The logic below has been completely rewritten.
+    // =================================================================
     function openChat(chatId, chatName, type, metaData = null) {
+        // ### FIX 1: Detach the old listener ###
+        // This ensures that when you switch chats, the listener for the previous chat is turned off.
+        if (activeChatMessagesListener) {
+            activeChatMessagesListener();
+        }
+
         activeChatId = chatId;
         const lastRead = JSON.parse(localStorage.getItem('lastRead')) || {};
         lastRead[chatId] = Date.now();
@@ -673,91 +691,34 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const messagesRef = query(ref(db, `chats/${activeChatId}`), orderByChild('timestamp'));
         
-        onValue(messagesRef, (snapshot) => {
+        // ### FIX 2: Attach the new listener and handle updates correctly ###
+        activeChatMessagesListener = onValue(messagesRef, async (snapshot) => {
+            // Check if the user is already scrolled to the bottom. If so, we'll auto-scroll later.
             const shouldScroll = elements.messageList.scrollTop + elements.messageList.clientHeight >= elements.messageList.scrollHeight - 30;
 
-            if (!snapshot.exists()) {
-                elements.messageList.innerHTML = `<p class="empty-state">Belum ada pesan. Mulai percakapan!</p>`;
-                return;
+            const messagePromises = [];
+            if (snapshot.exists()) {
+                snapshot.forEach(child => {
+                    // Instead of rendering directly, we create a promise for each message element
+                    messagePromises.push(createMessageElement(child.key, child.val()));
+                });
             }
+            
+            // Wait for all message elements to be created (including fetching reply data)
+            const messageElements = await Promise.all(messagePromises);
+            
+            // Now, clear the list and append all elements at once, in the correct order.
             elements.messageList.innerHTML = '';
-            snapshot.forEach(async (child) => {
-                const msgId = child.key;
-                const msgData = child.val();
-                
-                if (msgData.deleted) {
-                    const deletedMsgElement = el('div', '', { class: 'message-wrapper received', id: `msg-${msgId}` });
-                    const bubble = el('div', '<p class="message-text"><em>Pesan ini telah dihapus.</em></p>', { class: 'message-bubble' });
-                    deletedMsgElement.append(bubble);
-                    elements.messageList.append(deletedMsgElement);
-                    return;
-                }
-                
-                const isMe = msgData.senderId === currentUser.uid;
-                const msgWrapper = el('div', '', { class: `message-wrapper ${isMe ? 'sent' : 'received'}`, id: `msg-${msgId}` });
-                const msgBubble = el('div', '', { class: 'message-bubble' });
-                
-                const senderInfo = allUsers[msgData.senderId] || { name: 'Pengguna Dihapus', role: '' };
-                const senderName = isMe ? 'Anda' : senderInfo.name;
-                const senderRole = msgData.senderRole || senderInfo.role;
-                const roleClass = (senderRole || '').replace(' ', '-');
-                
-                const headerHTML = `${senderName} <span class="role-badge role-${roleClass}" style="font-size: 1rem; vertical-align: middle;">${senderRole}</span>`;
-                const header = el('p', '', { class: 'message-header' });
-                header.innerHTML = headerHTML;
-                
-                msgBubble.append(header);
-
-                if (msgData.replyingToId) {
-                    const repliedMsgRef = ref(db, `chats/${activeChatId}/${msgData.replyingToId}`);
-                    const repliedMsgSnap = await get(repliedMsgRef);
-                    if (repliedMsgSnap.exists()) {
-                        const repliedMsg = repliedMsgSnap.val();
-                        if (!repliedMsg.deleted) {
-                            const isReplyingToSelf = repliedMsg.senderId === currentUser.uid;
-                            const repliedHeaderName = isReplyingToSelf ? 'Anda' : (allUsers[repliedMsg.senderId]?.name || 'Pengguna Dihapus');
-                            
-                            const repliedMessageDiv = el('div', '', {class: 'replied-message'});
-                            repliedMessageDiv.innerHTML = `<p class="replied-header">${repliedHeaderName}</p><p class="replied-text">${repliedMsg.text}</p>`;
-                            msgBubble.append(repliedMessageDiv);
-                        }
-                    }
-                }
-                
-                const text = el('div', '', { class: 'message-text' });
-                text.innerHTML = linkify(msgData.text);
-                const time = new Date(msgData.timestamp).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
-                const editedIndicator = msgData.edited ? '<span style="font-size: 1rem; opacity: 0.7; margin-left: 0.5rem;">(telah diedit)</span>' : '';
-                const footer = el('p', '', { class: 'message-footer' });
-                footer.innerHTML = time + editedIndicator;
-                
-                const actions = el('div', '', { class: 'message-actions' });
-                const replyBtn = el('button', '<i class="fas fa-reply"></i>', { class: 'btn-sm' });
-                replyBtn.onclick = () => setReplyingTo(msgId, msgData);
-                
-                const reportBtn = el('button', '<i class="fas fa-flag"></i>', { class: 'btn-sm warm' });
-                reportBtn.onclick = () => openReportModal(msgId, msgData);
-                
-                actions.append(replyBtn, reportBtn);
-
-                const isAdminOrSuperAdmin = currentUserData.role === 'admin' || currentUserData.role === 'super admin';
-
-                if (isMe) {
-                    const editBtn = el('button', '<i class="fas fa-edit"></i>', { class: 'btn-sm info' });
-                    editBtn.onclick = () => openEditModal(msgId, msgData);
-                    actions.append(editBtn);
-                }
-
-                if (isMe || isAdminOrSuperAdmin) {
-                    const deleteBtn = el('button', '<i class="fas fa-trash"></i>', { class: 'btn-sm danger' });
-                    deleteBtn.onclick = () => deleteMessage(msgId);
-                    actions.append(deleteBtn);
-                }
-                
-                msgBubble.append(text, footer, actions);
-                msgWrapper.append(msgBubble);
-                elements.messageList.append(msgWrapper);
-            });
+            if (messageElements.length > 0) {
+                 messageElements.forEach(el => {
+                    if(el) elements.messageList.appendChild(el);
+                });
+            } else {
+                elements.messageList.innerHTML = `<p class="empty-state">Belum ada pesan. Mulai percakapan!</p>`;
+            }
+           
+            // ### FIX 3: Scroll to bottom reliably ###
+            // Only scroll if the user was already at the bottom, or if it's the initial load.
             if (shouldScroll) {
                 elements.messageList.scrollTop = elements.messageList.scrollHeight;
             }
@@ -768,14 +729,101 @@ document.addEventListener('DOMContentLoaded', () => {
             sidebar.classList.remove('active');
         }
     }
+
+    // This new function's only job is to ASYNCHRONOUSLY create and RETURN a message element.
+    // It does NOT add it to the DOM. This is key to fixing the race condition.
+    async function createMessageElement(msgId, msgData) {
+        if (msgData.deleted) {
+             return null;
+        }
+
+        const isMe = msgData.senderId === currentUser.uid;
+        const msgWrapper = el('div', '', { class: `message-wrapper ${isMe ? 'sent' : 'received'}`, id: `msg-${msgId}` });
+        const msgBubble = el('div', '', { class: 'message-bubble' });
+        
+        // Handle normal message display
+        const senderInfo = allUsers[msgData.senderId] || { name: 'Pengguna Dihapus', role: '' };
+        const senderName = isMe ? 'Anda' : senderInfo.name;
+        const senderRole = msgData.senderRole || senderInfo.role;
+        const roleClass = (senderRole || '').replace(' ', '-');
+        
+        const headerHTML = `${senderName} <span class="role-badge role-${roleClass}" style="font-size: 1rem; vertical-align: middle;">${senderRole}</span>`;
+        const header = el('p', '', { class: 'message-header' });
+        header.innerHTML = headerHTML;
+        msgBubble.append(header);
+
+        // AWAIT reply data before continuing
+        if (msgData.replyingToId) {
+            const repliedMsgSnap = await get(ref(db, `chats/${activeChatId}/${msgData.replyingToId}`));
+            if (repliedMsgSnap.exists()) {
+                const repliedMsg = repliedMsgSnap.val();
+                if (!repliedMsg.deleted) {
+                    const isReplyingToSelf = repliedMsg.senderId === currentUser.uid;
+                    const repliedHeaderName = isReplyingToSelf ? 'Anda' : (allUsers[repliedMsg.senderId]?.name || 'Pengguna Dihapus');
+                    
+                    const repliedMessageDiv = el('div', '', {class: 'replied-message'});
+                    repliedMessageDiv.innerHTML = `<p class="replied-header">${repliedHeaderName}</p><p class="replied-text">${repliedMsg.text}</p>`;
+                    msgBubble.append(repliedMessageDiv);
+                }
+            }
+        }
+        
+        const text = el('div', '', { class: 'message-text' });
+        text.innerHTML = linkify(msgData.text);
+        const time = new Date(msgData.timestamp).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
+        const editedIndicator = msgData.edited ? '<span style="font-size: 1rem; opacity: 0.7; margin-left: 0.5rem;">(telah diedit)</span>' : '';
+        const footer = el('p', '', { class: 'message-footer' });
+        footer.innerHTML = time + editedIndicator;
+        
+        const actions = el('div', '', { class: 'message-actions' });
+        const replyBtn = el('button', '<i class="fas fa-reply"></i>', { class: 'btn-sm' });
+        replyBtn.onclick = () => setReplyingTo(msgId, msgData);
+        
+        const reportBtn = el('button', '<i class="fas fa-flag"></i>', { class: 'btn-sm warm' });
+        reportBtn.onclick = () => openReportModal(msgId, msgData);
+        
+        actions.append(replyBtn, reportBtn);
+
+        const isAdminOrSuperAdmin = currentUserData.role === 'admin' || currentUserData.role === 'super admin';
+
+        if (isMe) {
+            const editBtn = el('button', '<i class="fas fa-edit"></i>', { class: 'btn-sm info' });
+            editBtn.onclick = () => openEditModal(msgId, msgData);
+            actions.append(editBtn);
+        }
+
+        if (isMe || isAdminOrSuperAdmin) {
+            const deleteBtn = el('button', '<i class="fas fa-trash"></i>', { class: 'btn-sm danger' });
+            deleteBtn.onclick = () => deleteMessage(msgId, msgData);
+            actions.append(deleteBtn);
+        }
+
+        msgBubble.append(text, footer, actions);
+        msgWrapper.append(msgBubble);
+
+        return msgWrapper; // Return the finished element
+    }
+    // =================================================================
+    // END OF BUG FIX AREA
+    // =================================================================
     
-    async function deleteMessage(msgId) {
-        if (!confirm('Apakah Anda yakin ingin menghapus pesan ini?')) return;
+    // ### NEW FEATURE: HARD DELETE ###
+    async function deleteMessage(msgId, msgData) {
+        const isMe = msgData.senderId === currentUser.uid;
+        const isAdminOrSuperAdmin = currentUserData.role === 'admin' || currentUserData.role === 'super admin';
+        
+        if (!isMe && !isAdminOrSuperAdmin) {
+            alert('Anda tidak memiliki izin untuk menghapus pesan ini.');
+            return;
+        }
+
+        if (!confirm('Apakah Anda yakin ingin menghapus pesan ini secara permanen? Aksi ini tidak dapat dibatalkan.')) {
+            return;
+        }
+
         try {
-            await update(ref(db, `chats/${activeChatId}/${msgId}`), {
-                deleted: true,
-                text: 'Pesan ini telah dihapus.'
-            });
+            // This sets the message data to null, effectively deleting it from the database.
+            await set(ref(db, `chats/${activeChatId}/${msgId}`), null);
         } catch (error) {
             console.error("Error deleting message:", error);
             alert("Gagal menghapus pesan.");
@@ -1079,17 +1127,16 @@ document.addEventListener('DOMContentLoaded', () => {
     function setupEventListeners() {
         elements.searchGroup.addEventListener('input', (e) => {
             const searchTerm = e.target.value.toLowerCase();
-            document.querySelectorAll('#group-list li').forEach(item => {
-                const groupName = item.textContent.toLowerCase();
-                item.style.display = groupName.includes(searchTerm) ? '' : 'none';
+            document.querySelectorAll('#group-list li').forEach(li => {
+                const name = li.textContent.toLowerCase();
+                li.style.display = name.includes(searchTerm) ? '' : 'list-item';
             });
         });
-
         elements.searchUser.addEventListener('input', (e) => {
             const searchTerm = e.target.value.toLowerCase();
-            document.querySelectorAll('#user-list li').forEach(item => {
-                const userName = item.textContent.toLowerCase();
-                item.style.display = userName.includes(searchTerm) ? '' : 'none';
+            document.querySelectorAll('#user-list li').forEach(li => {
+                const name = li.textContent.toLowerCase();
+                li.style.display = name.includes(searchTerm) ? '' : 'list-item';
             });
         });
 
