@@ -48,6 +48,7 @@
             <li><a href="#addusers" class="nav-link"><i class="fas fa-user-plus"></i> Tambah Pengguna</a></li>
             <li><a href="#addrutes" class="nav-link"><i class="fa-solid fa-map-location-dot"></i> Tambah Rute</a></li>
             <li><a href="#addvehicles" class="nav-link"><i class="fas fa-car-side"></i> Tambah Kendaraan</a></li>
+            <li id="deleterequests-menu-item" style="display: none;"><a href="#deleterequests" class="nav-link"><i class="fas fa-check-to-slot"></i> Permintaan Hapus</a></li>
           </ul>
         <div class="sidebar-menu-header">
           <h4><i class="fa-solid fa-book"></i> Dokumentasi</h4>
@@ -462,6 +463,30 @@
             </div>
           </section>
       </div>
+      <div id="page-deleterequests" class="page">
+        <section class="card">
+          <h2 class="card-header">Pusat Permintaan Hapus</h2>
+          <div class="card-body">
+            <div class="table-responsive">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Jenis Data</th>
+                    <th>Detail Data</th>
+                    <th>Diminta oleh</th>
+                    <th>Tanggal</th>
+                    <th>Status</th>
+                    <th>Aksi</th>
+                  </tr>
+                </thead>
+                <tbody id="deleteRequestList">
+                  <tr><td colspan="6" style="text-align: center; padding: 1rem;">Memuat permintaan...</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+      </div>
       <div id="page-performance" class="page">
         <section class="card">
           <h2 class="card-header">Aktivitas Terbaru Berdasarkan Role</h2>
@@ -643,6 +668,7 @@ document.addEventListener('DOMContentLoaded', () => {
         addusers: { title: '<i class="fas fa-user-plus"></i> Tambah Pengguna', subtitle: 'Buat akun baru untuk pengguna.' },
         addrutes: { title: '<i class="fas fa-plus-circle"></i> Tambah Rute', subtitle: 'Tambahkan rute baru ke dalam sistem.' },
         addvehicles: { title: '<i class="fas fa-car-side"></i> Tambah Kendaraan', subtitle: 'Tambahkan kendaraan baru ke dalam sistem.' },
+        deleterequests: { title: '<i class="fas fa-check-to-slot"></i> Permintaan Hapus', subtitle: 'Tinjau dan proses permintaan penghapusan data.' },
         performance: { title: '<i class="fas fa-chart-line"></i> Kinerja Role', subtitle: 'Lihat ringkasan aktivitas berdasarkan peran.' },
         documentation: { title: '<i class="fas fa-file-alt"></i> Dokumentasi Laporan', subtitle: 'Buat dan unduh laporan dari data sistem.' },
         tampilan: { title: '<i class="fas fa-palette"></i> Tampilan', subtitle: 'Sesuaikan tampilan antarmuka sistem.' },
@@ -678,6 +704,7 @@ document.addEventListener('DOMContentLoaded', () => {
         addVehicleStatus: document.getElementById('addVehicleStatus'),
         vehicleList: document.getElementById('vehicleList'),
         financeList: document.getElementById('financeList'),
+        deleteRequestList: document.getElementById('deleteRequestList'),
         paginationControls: document.getElementById('pagination-controls'),
         prevBtn: document.getElementById('prevBtn'),
         nextBtn: document.getElementById('nextBtn'),
@@ -720,6 +747,7 @@ document.addEventListener('DOMContentLoaded', () => {
         themeToggle: document.getElementById('themeToggle'),
         fontSelector: document.getElementById('fontSelector'),
         lockdownMenuItem: document.getElementById('lockdown-menu-item'),
+        deleteRequestsMenuItem: document.getElementById('deleterequests-menu-item'),
         lockdownUserList: document.getElementById('lockdownUserList'),
         massLockdownSwitch: document.getElementById('massLockdownSwitch'),
         backupMenuItem: document.getElementById('backup-menu-item'),
@@ -741,6 +769,7 @@ document.addEventListener('DOMContentLoaded', () => {
     let allTrips = [];
     let allRoutes = [];
     let allVehicles = [];
+    let allDeletionRequests = [];
     let routeCodeMap = {};
     let currentTripForInvoice = null;
     let currentPage = 1;
@@ -874,13 +903,13 @@ document.addEventListener('DOMContentLoaded', () => {
         if (currentUserData.role === 'super admin') {
             elements.lockdownMenuItem.style.display = 'block';
             elements.backupMenuItem.style.display = 'block';
+            elements.deleteRequestsMenuItem.style.display = 'block';
             const adminOption = el('option', 'Admin', { value: 'admin' });
             if (!elements.newUserRole.querySelector('option[value="admin"]')) {
               elements.newUserRole.appendChild(adminOption);
             }
         }
         
-        // ## PERBAIKAN DI SINI: Menambahkan onDisconnect ##
         const presenceRef = ref(db, `users/${user.uid}/online`);
         await set(presenceRef, true);
         onDisconnect(presenceRef).set(false);
@@ -898,9 +927,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 routeCodeMap = {};
                 if (snapshot.exists()) {
                     snapshot.forEach(child => {
-                        const routeData = { id: child.key, data: child.val() };
+                        const routeData = { id: child.key, ...child.val() };
                         allRoutes.push(routeData);
-                        routeCodeMap[routeData.data.address] = routeData.data.code;
+                        routeCodeMap[routeData.address] = routeData.code;
                     });
                 }
                 displayRoutes(1);
@@ -931,10 +960,23 @@ document.addEventListener('DOMContentLoaded', () => {
         });
         onValue(ref(db, 'vehicles'), (snapshot) => {
             allVehicles = [];
-            if (snapshot.exists()) { snapshot.forEach(child => { allVehicles.push({ id: child.key, data: child.val() }); }); }
+            if (snapshot.exists()) { snapshot.forEach(child => { allVehicles.push({ id: child.key, ...child.val() }); }); }
             displayVehicles(1);
             loadDashboardStats();
         });
+        
+        if (currentUserData.role === 'super admin') {
+            onValue(ref(db, 'deletion_requests'), (snapshot) => {
+                allDeletionRequests = [];
+                if(snapshot.exists()) {
+                    snapshot.forEach(child => {
+                        allDeletionRequests.push({ id: child.key, ...child.val() });
+                    });
+                }
+                allDeletionRequests.sort((a,b) => b.timestamp - a.timestamp);
+                displayDeletionRequests();
+            });
+        }
         
         elements.filterRole.onchange = () => displayUsers(1);
         elements.searchName.oninput = () => displayUsers(1);
@@ -1241,6 +1283,26 @@ document.addEventListener('DOMContentLoaded', () => {
         if (currentPage < totalPages) { displayTrips(currentPage + 1); } 
     });
 
+    async function requestDeletion(type, itemId, itemData) {
+        if (confirm(`Anda akan meminta penghapusan untuk:\nJenis: ${type}\nData: ${itemData}\n\nLanjutkan?`)) {
+            try {
+                const requestData = {
+                    type,
+                    itemId,
+                    itemData,
+                    requestedBy: currentUser.uid,
+                    requestedByName: currentUserData.name,
+                    timestamp: serverTimestamp(),
+                    status: 'pending'
+                };
+                await push(ref(db, 'deletion_requests'), requestData);
+                alert('Permintaan penghapusan telah dikirim ke Super Admin.');
+            } catch (error) {
+                alert(`Gagal mengirim permintaan: ${error.message}`);
+            }
+        }
+    }
+    
     function displayUsers(page) {
       elements.userList.innerHTML = '';
       currentUserPage = page;
@@ -1266,15 +1328,24 @@ document.addEventListener('DOMContentLoaded', () => {
           const tr = el('tr');
           const isCurrentUser = (uid === currentUser.uid);
           const isTargetSuperAdmin = u.role === 'super admin';
-          const isCurrentUserAdmin = currentUserData.role === 'admin';
-          let deleteButton;
+          
+          let actionButtonHTML = '';
           if (isCurrentUser) {
-              deleteButton = `<button class="delete-user-btn" disabled title="Tidak dapat menghapus diri sendiri"><i class="fa-solid fa-trash"></i> Hapus</button>`;
-          } else if (isCurrentUserAdmin && isTargetSuperAdmin) {
-              deleteButton = `<button class="delete-user-btn" disabled title="Admin tidak dapat menghapus Super Admin"><i class="fa-solid fa-trash"></i> Hapus</button>`;
-          } else {
-              deleteButton = `<button class="delete-user-btn" data-uid="${uid}" data-name="${u.name || 'tanpa nama'}"><i class="fa-solid fa-trash"></i> Hapus</button>`;
+            actionButtonHTML = `<button class="btn-sm" disabled title="Tidak dapat melakukan aksi pada diri sendiri">Aksi</button>`;
+          } else if (currentUserData.role === 'super admin') {
+            if (!isTargetSuperAdmin) {
+                 actionButtonHTML = `<button class="btn-sm danger delete-btn" data-type="user" data-uid="${uid}" data-name="${u.name || 'tanpa nama'}"><i class="fa-solid fa-trash"></i> Hapus</button>`;
+            } else {
+                 actionButtonHTML = `<button class="btn-sm" disabled title="Tidak dapat menghapus sesama Super Admin">Aksi</button>`;
+            }
+          } else if (currentUserData.role === 'admin') {
+              if (isTargetSuperAdmin) {
+                 actionButtonHTML = `<button class="btn-sm" disabled title="Admin tidak dapat menghapus Super Admin">Aksi</button>`;
+              } else {
+                 actionButtonHTML = `<button class="btn-sm warm request-delete-btn" data-type="user" data-uid="${uid}" data-name="${u.name || 'tanpa nama'}"><i class="fa-solid fa-bell"></i> Minta Hapus</button>`;
+              }
           }
+
           const roleClass = (u.role || '').replace(' ', '-');
           tr.innerHTML = `
               <td data-label="Nama">${u.name || '-'}</td>
@@ -1284,7 +1355,7 @@ document.addEventListener('DOMContentLoaded', () => {
               <td data-label="Status Karyawan">${u.employeeStatus || '-'}</td>
               <td data-label="Login Terakhir">${u.lastLogin ? new Date(u.lastLogin).toLocaleString('id-ID') : '-'}</td>
               <td data-label="Status" class="${u.online ? 'status-online' : 'status-offline'}"><i class="fas fa-circle"></i> ${u.online ? 'Online' : 'Offline'}</td>
-              <td data-label="Aksi">${deleteButton}</td>
+              <td data-label="Aksi">${actionButtonHTML}</td>
           `;
           elements.userList.appendChild(tr);
         });
@@ -1298,14 +1369,20 @@ document.addEventListener('DOMContentLoaded', () => {
     elements.nextUserBtn.addEventListener('click', () => { const totalPages = Math.ceil(Object.keys(allUsers).length / rowsPerPage); if (currentUserPage < totalPages) { displayUsers(currentUserPage + 1); } });
     
     elements.userList.addEventListener('click', async (e) => {
-        if (e.target.classList.contains('delete-user-btn')) {
-            const { uid, name } = e.target.dataset;
+        const target = e.target.closest('button');
+        if (!target) return;
+        
+        const { type, uid, name } = target.dataset;
+
+        if (target.classList.contains('delete-btn')) {
             if (confirm(`Yakin ingin hapus data user: ${name}?`)) {
                 try {
                     await set(ref(db, `users/${uid}`), null);
                     alert(`Data user ${name} berhasil dihapus.`);
                 } catch (error) { alert(`Gagal: ${error.message}`); }
             }
+        } else if (target.classList.contains('request-delete-btn')) {
+             requestDeletion(type, uid, name);
         }
     });
 
@@ -1313,8 +1390,7 @@ document.addEventListener('DOMContentLoaded', () => {
       elements.routeList.innerHTML = '';
       currentRoutePage = page;
       const searchTerm = elements.searchRoute.value.toLowerCase();
-      const filteredRoutes = allRoutes.filter(routeEntry => {
-          const route = routeEntry.data;
+      const filteredRoutes = allRoutes.filter(route => {
           return !searchTerm || (route.code || '').toLowerCase().includes(searchTerm) || (route.address || '').toLowerCase().includes(searchTerm);
       });
       const start = (currentRoutePage - 1) * rowsPerPage;
@@ -1328,19 +1404,26 @@ document.addEventListener('DOMContentLoaded', () => {
       if (paginatedRoutes.length === 0) {
         elements.routeList.innerHTML = '<tr><td colspan="3">Tidak ada rute ditemukan.</td></tr>';
       } else {
-        paginatedRoutes.forEach(routeEntry => {
-          const routeId = routeEntry.id;
-          const route = routeEntry.data;
+        paginatedRoutes.forEach(route => {
           const tr = el('tr');
+          const itemData = `${route.code} - ${route.address}`;
           tr.innerHTML = `<td data-label="Kode">${route.code}</td><td data-label="Rute">${route.address}</td>`;
           const actionsCell = el('td', '', {'data-label': 'Aksi'});
-          const deleteBtn = el('button', '<i class="fa-solid fa-trash"></i> Hapus', { class: 'btn-sm danger' });
-          deleteBtn.onclick = async () => {
-            if (confirm(`Yakin ingin hapus rute ${route.code} - ${route.address}?`)) {
-              await set(ref(db, `routes/${routeId}`), null);
-            }
-          };
-          actionsCell.appendChild(deleteBtn);
+          
+          let actionButton;
+          if (currentUserData.role === 'super admin') {
+            actionButton = el('button', '<i class="fa-solid fa-trash"></i> Hapus', { class: 'btn-sm danger' });
+            actionButton.onclick = async () => {
+                if (confirm(`Yakin ingin hapus rute ${itemData}?`)) {
+                  await set(ref(db, `routes/${route.id}`), null);
+                }
+            };
+          } else {
+            actionButton = el('button', '<i class="fa-solid fa-bell"></i> Minta Hapus', { class: 'btn-sm warm' });
+            actionButton.onclick = () => requestDeletion('rute', route.id, itemData);
+          }
+
+          actionsCell.appendChild(actionButton);
           tr.appendChild(actionsCell);
           elements.routeList.appendChild(tr);
         });
@@ -1353,8 +1436,7 @@ document.addEventListener('DOMContentLoaded', () => {
     elements.prevRouteBtn.addEventListener('click', () => { if (currentRoutePage > 1) { displayRoutes(currentRoutePage - 1); } });
     elements.nextRouteBtn.addEventListener('click', () => { 
         const searchTerm = elements.searchRoute.value.toLowerCase();
-        const filteredRoutes = allRoutes.filter(routeEntry => {
-            const route = routeEntry.data;
+        const filteredRoutes = allRoutes.filter(route => {
             return !searchTerm || (route.code || '').toLowerCase().includes(searchTerm) || (route.address || '').toLowerCase().includes(searchTerm);
         });
         const totalPages = Math.ceil(filteredRoutes.length / rowsPerPage); 
@@ -1365,8 +1447,7 @@ document.addEventListener('DOMContentLoaded', () => {
       elements.vehicleList.innerHTML = '';
       currentVehiclePage = page;
       const searchTerm = elements.searchVehicle.value.toLowerCase();
-      const filteredVehicles = allVehicles.filter(vehicleEntry => {
-          const vehicle = vehicleEntry.data;
+      const filteredVehicles = allVehicles.filter(vehicle => {
           return !searchTerm || (vehicle.vehicleNumber || '').toLowerCase().includes(searchTerm) || (vehicle.unit || '').toLowerCase().includes(searchTerm);
       });
       const start = (currentVehiclePage - 1) * rowsPerPage;
@@ -1380,19 +1461,26 @@ document.addEventListener('DOMContentLoaded', () => {
       if (paginatedVehicles.length === 0) {
         elements.vehicleList.innerHTML = '<tr><td colspan="4">Tidak ada kendaraan ditemukan.</td></tr>';
       } else {
-        paginatedVehicles.forEach(vehicleEntry => {
-          const vehicleId = vehicleEntry.id;
-          const vehicle = vehicleEntry.data;
+        paginatedVehicles.forEach(vehicle => {
           const tr = el('tr');
+          const itemData = `${vehicle.vehicleNumber} (${vehicle.unit})`;
           tr.innerHTML = `<td data-label="No. Kendaraan">${vehicle.vehicleNumber}</td><td data-label="Unit">${vehicle.unit || '-'}</td><td data-label="Kepemilikan">${vehicle.ownership || '-'}</td>`;
           const actionsCell = el('td', '', {'data-label': 'Aksi'});
-          const deleteBtn = el('button', '<i class="fa-solid fa-trash"></i> Hapus', { class: 'btn-sm danger' });
-          deleteBtn.onclick = async () => {
-            if (confirm(`Yakin ingin hapus Kendaraan ${vehicle.vehicleNumber}?`)) {
-              await set(ref(db, `vehicles/${vehicleId}`), null);
-            }
-          };
-          actionsCell.appendChild(deleteBtn);
+          
+          let actionButton;
+          if (currentUserData.role === 'super admin') {
+              actionButton = el('button', '<i class="fa-solid fa-trash"></i> Hapus', { class: 'btn-sm danger' });
+              actionButton.onclick = async () => {
+                  if (confirm(`Yakin ingin hapus Kendaraan ${itemData}?`)) {
+                    await set(ref(db, `vehicles/${vehicle.id}`), null);
+                  }
+              };
+          } else {
+              actionButton = el('button', '<i class="fa-solid fa-bell"></i> Minta Hapus', { class: 'btn-sm warm' });
+              actionButton.onclick = () => requestDeletion('kendaraan', vehicle.id, itemData);
+          }
+
+          actionsCell.appendChild(actionButton);
           tr.appendChild(actionsCell);
           elements.vehicleList.appendChild(tr);
         });
@@ -1405,8 +1493,7 @@ document.addEventListener('DOMContentLoaded', () => {
     elements.prevVehicleBtn.addEventListener('click', () => { if (currentVehiclePage > 1) { displayVehicles(currentVehiclePage - 1); } });
     elements.nextVehicleBtn.addEventListener('click', () => { 
         const searchTerm = elements.searchVehicle.value.toLowerCase();
-        const filteredVehicles = allVehicles.filter(vehicleEntry => {
-            const vehicle = vehicleEntry.data;
+        const filteredVehicles = allVehicles.filter(vehicle => {
             return !searchTerm || (vehicle.vehicleNumber || '').toLowerCase().includes(searchTerm) || (vehicle.unit || '').toLowerCase().includes(searchTerm);
         });
         const totalPages = Math.ceil(filteredVehicles.length / rowsPerPage); 
@@ -1470,6 +1557,77 @@ document.addEventListener('DOMContentLoaded', () => {
         const totalPages = Math.ceil(filteredTrips.length / rowsPerPage);
         if (currentFinancePage < totalPages) displayFinance(currentFinancePage + 1);
     });
+
+    async function handleDeletionRequest(reqId, action) {
+        const request = allDeletionRequests.find(r => r.id === reqId);
+        if (!request) return;
+
+        if (action === 'approve') {
+             if (!confirm(`Yakin ingin MENYETUJUI penghapusan data:\n${request.itemData}?`)) return;
+             try {
+                let path;
+                if(request.type === 'user') path = 'users';
+                else if (request.type === 'rute') path = 'routes';
+                else if (request.type === 'kendaraan') path = 'vehicles';
+                
+                if(path) {
+                    await set(ref(db, `${path}/${request.itemId}`), null);
+                    await update(ref(db, `deletion_requests/${reqId}`), { status: 'approved' });
+                    alert('Permintaan disetujui dan data telah dihapus.');
+                }
+             } catch (error) {
+                alert(`Gagal menghapus data: ${error.message}`);
+             }
+        } else if (action === 'reject') {
+            if (!confirm(`Yakin ingin MENOLAK permintaan penghapusan data:\n${request.itemData}?`)) return;
+            try {
+                await update(ref(db, `deletion_requests/${reqId}`), { status: 'rejected' });
+                alert('Permintaan telah ditolak.');
+            } catch (error) {
+                alert(`Gagal menolak permintaan: ${error.message}`);
+            }
+        }
+    }
+    
+    function displayDeletionRequests() {
+        const listEl = elements.deleteRequestList;
+        listEl.innerHTML = '';
+        if (allDeletionRequests.length === 0) {
+            listEl.innerHTML = `<tr><td colspan="6" class="empty-state">Tidak ada permintaan penghapusan.</td></tr>`;
+            return;
+        }
+
+        allDeletionRequests.forEach(req => {
+            const tr = el('tr');
+            
+            const statusMap = {
+                pending: { text: 'Menunggu', color: 'orange' },
+                approved: { text: 'Disetujui', color: 'lime' },
+                rejected: { text: 'Ditolak', color: 'red' }
+            };
+            const statusInfo = statusMap[req.status] || { text: req.status, color: 'white' };
+            const statusHTML = `<span style="color:${statusInfo.color}">${statusInfo.text}</span>`;
+            
+            let actionsHTML = '';
+            if (req.status === 'pending') {
+                actionsHTML = `
+                    <button class="btn-sm success" onclick="window.handleDeletionRequest('${req.id}', 'approve')">Setujui</button>
+                    <button class="btn-sm danger" onclick="window.handleDeletionRequest('${req.id}', 'reject')">Tolak</button>
+                `;
+            }
+
+            tr.innerHTML = `
+                <td data-label="Jenis Data">${req.type}</td>
+                <td data-label="Detail Data">${req.itemData}</td>
+                <td data-label="Diminta oleh">${req.requestedByName || 'N/A'}</td>
+                <td data-label="Tanggal">${new Date(req.timestamp).toLocaleString('id-ID')}</td>
+                <td data-label="Status">${statusHTML}</td>
+                <td data-label="Aksi"><div class="trip-actions" style="justify-content: flex-end;">${actionsHTML}</div></td>
+            `;
+            listEl.appendChild(tr);
+        });
+    }
+    window.handleDeletionRequest = handleDeletionRequest;
 
     elements.addVehicleForm.addEventListener('submit', async (e) => { 
         e.preventDefault(); 
@@ -1751,7 +1909,7 @@ document.addEventListener('DOMContentLoaded', () => {
           summary = `Total Pengguna: ${allUsersData.length}`;
           break;
         case 'routes':
-          dataForExcel = allRoutes.map(r => ({ 'Kode': r.data.code, 'Alamat/Lokasi': r.data.address }));
+          dataForExcel = allRoutes.map(r => ({ 'Kode': r.code, 'Alamat/Lokasi': r.address }));
           bodyForPDF = dataForExcel.map(Object.values);
           headers = ["Kode", "Alamat/Lokasi"];
           filename = 'Laporan_Rute';
@@ -1759,7 +1917,7 @@ document.addEventListener('DOMContentLoaded', () => {
           summary = `Total Rute: ${allRoutes.length}`;
           break;
         case 'vehicles':
-          dataForExcel = allVehicles.map(v => ({ 'No. Kendaraan': v.data.vehicleNumber, 'Unit': v.data.unit, 'Kepemilikan': v.data.ownership }));
+          dataForExcel = allVehicles.map(v => ({ 'No. Kendaraan': v.vehicleNumber, 'Unit': v.unit, 'Kepemilikan': v.ownership }));
           bodyForPDF = dataForExcel.map(Object.values);
           headers = ["No. Kendaraan", "Unit", "Kepemilikan"];
           filename = 'Laporan_Kendaraan';
