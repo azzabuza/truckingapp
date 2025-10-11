@@ -28,7 +28,7 @@
             <input type="text" id="searchGroup" style="background: var(--gunmetal);" placeholder="Cari grup">
           </div>
           <ul id="group-list">
-             </ul>
+            </ul>
           <div class="sidebar-chat-header">
             <h4 class="chat-list-header"><i class="fa-solid fa-person"></i> Personal Chat</h4>
           </div>
@@ -279,14 +279,12 @@ document.addEventListener('DOMContentLoaded', () => {
     let currentUser = null;
     let currentUserData = null;
     let allUsers = {};
-    let allGroups = {}; // [FIX] Added to store group data globally
     let activeChatId = null;
     let activeGroupData = null;
     let replyingTo = null;
     let messageToReport = null;
     let messageToEdit = null;
     let chatListeners = {};
-    let activeChatMessagesListener = null; // This will hold the unsubscribe function for the active chat
     
     const elements = {
         userName: document.getElementById('userName'),
@@ -422,8 +420,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         
         onValue(ref(db, 'groups'), (snapshot) => {
-             allGroups = snapshot.val() || {}; // [FIX] Store groups globally
-             renderChatLists(allGroups); // [FIX] Re-render when group data changes
+            renderChatLists(snapshot.val());
         });
 
         Object.keys(allUsers).forEach(uid => {
@@ -444,27 +441,21 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
     
-    // [MODIFIED] renderChatLists function
     function renderChatLists(groupsData) {
-        const groupSearchTerm = elements.searchGroup.value.toLowerCase();
         elements.groupList.innerHTML = '';
-        let groupFound = false;
-        
         const generalGroup = { id: 'general', name: 'Diskusi Umum' };
-        if (generalGroup.name.toLowerCase().includes(groupSearchTerm)) {
-            const li = el('li');
-            const a = el('a', `<span><i class="fa-solid fa-user-group"></i> ${generalGroup.name}</span>`, { href: '#', 'data-chat-id': 'general' });
-            const badge = el('span', '0', { class: 'unread-badge', style: 'display: none;' });
-            a.append(badge);
-            a.onclick = (e) => { e.preventDefault(); openChat(generalGroup.id, generalGroup.name, 'group', generalGroup); };
-            li.append(a);
-            elements.groupList.append(li);
-            listenForUnread(generalGroup.id, badge);
-            groupFound = true;
-        }
+        
+        const liGeneral = el('li');
+        const aGeneral = el('a', `<span><i class="fa-solid fa-user-group"></i> ${generalGroup.name}</span>`, { href: '#', 'data-chat-id': 'general' });
+        const badgeGeneral = el('span', '0', { class: 'unread-badge', style: 'display: none;' });
+        aGeneral.append(badgeGeneral);
+        aGeneral.onclick = (e) => { e.preventDefault(); openChat(generalGroup.id, generalGroup.name, 'group', generalGroup); };
+        liGeneral.append(aGeneral);
+        elements.groupList.append(liGeneral);
+        listenForUnread(generalGroup.id, badgeGeneral);
 
-        Object.entries(groupsData).forEach(([groupId, group]) => {
-            if (group.name.toLowerCase().includes(groupSearchTerm)) {
+        if (groupsData) {
+            Object.entries(groupsData).forEach(([groupId, group]) => {
                 const isMember = group.members && group.members[currentUser.uid];
                 const isAdmin = currentUserData.role === 'admin' || currentUserData.role === 'super admin';
                 const li = el('li');
@@ -478,44 +469,23 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (isMember || isAdmin) {
                     listenForUnread(groupId, badge);
                 }
-                groupFound = true;
-            }
-        });
-        
-        // [NEW] Add "not found" message for groups
-        if (!groupFound && groupSearchTerm) {
-            const li = el('li');
-            li.innerHTML = `<p class="empty-state" style="padding: 1rem 0;">Grup yang dicari tidak ada</p>`;
-            elements.groupList.appendChild(li);
+            });
         }
-
-        const userSearchTerm = elements.searchUser.value.toLowerCase();
+        
         elements.userList.innerHTML = '';
-        let userFound = false;
-
         Object.entries(allUsers).forEach(([uid, userData]) => {
             if (uid === currentUser.uid) return;
-            if ((userData.name || '').toLowerCase().includes(userSearchTerm)) {
-                const chatId = [currentUser.uid, uid].sort().join('_');
-                const li = el('li');
-                const onlineIndicator = userData.online ? '<i class="fa-solid fa-user status-online"></i>' : '<i class="fa-solid fa-user status-offline"></i>';
-                const a = el('a', `<span>${onlineIndicator} ${userData.name || 'Tanpa Nama'}</span>`, { href: '#', 'data-chat-id': chatId });
-                const badge = el('span', '0', { class: 'unread-badge', style: 'display: none;' });
-                a.append(badge);
-                a.onclick = (e) => { e.preventDefault(); openChat(chatId, userData.name, 'personal', { otherUserId: uid }); };
-                li.append(a);
-                elements.userList.append(li);
-                listenForUnread(chatId, badge);
-                userFound = true;
-            }
-        });
-
-        // [NEW] Add "not found" message for users
-        if (!userFound && userSearchTerm) {
+            const chatId = [currentUser.uid, uid].sort().join('_');
             const li = el('li');
-            li.innerHTML = `<p class="empty-state" style="padding: 1rem 0;">Nama yang dicari tidak ada</p>`;
-            elements.userList.appendChild(li);
-        }
+            const onlineIndicator = userData.online ? '<i class="fa-solid fa-user status-online"></i>' : '<i class="fa-solid fa-user status-offline"></i>';
+            const a = el('a', `<span>${onlineIndicator} ${userData.name || 'Tanpa Nama'}</span>`, { href: '#', 'data-chat-id': chatId });
+            const badge = el('span', '0', { class: 'unread-badge', style: 'display: none;' });
+            a.append(badge);
+            a.onclick = (e) => { e.preventDefault(); openChat(chatId, userData.name, 'personal', { otherUserId: uid }); };
+            li.append(a);
+            elements.userList.append(li);
+            listenForUnread(chatId, badge);
+        });
 
         updateActiveLinkInSidebar();
     }
@@ -630,16 +600,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    // =================================================================
-    // BUG FIX AREA: The logic below has been completely rewritten.
-    // =================================================================
     function openChat(chatId, chatName, type, metaData = null) {
-        // ### FIX 1: Detach the old listener ###
-        // This ensures that when you switch chats, the listener for the previous chat is turned off.
-        if (activeChatMessagesListener) {
-            activeChatMessagesListener();
-        }
-
         activeChatId = chatId;
         const lastRead = JSON.parse(localStorage.getItem('lastRead')) || {};
         lastRead[chatId] = Date.now();
@@ -712,34 +673,91 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const messagesRef = query(ref(db, `chats/${activeChatId}`), orderByChild('timestamp'));
         
-        // ### FIX 2: Attach the new listener and handle updates correctly ###
-        activeChatMessagesListener = onValue(messagesRef, async (snapshot) => {
-            // Check if the user is already scrolled to the bottom. If so, we'll auto-scroll later.
+        onValue(messagesRef, (snapshot) => {
             const shouldScroll = elements.messageList.scrollTop + elements.messageList.clientHeight >= elements.messageList.scrollHeight - 30;
 
-            const messagePromises = [];
-            if (snapshot.exists()) {
-                snapshot.forEach(child => {
-                    // Instead of rendering directly, we create a promise for each message element
-                    messagePromises.push(createMessageElement(child.key, child.val()));
-                });
-            }
-            
-            // Wait for all message elements to be created (including fetching reply data)
-            const messageElements = await Promise.all(messagePromises);
-            
-            // Now, clear the list and append all elements at once, in the correct order.
-            elements.messageList.innerHTML = '';
-            if (messageElements.length > 0) {
-                 messageElements.forEach(el => {
-                    if(el) elements.messageList.appendChild(el);
-                });
-            } else {
+            if (!snapshot.exists()) {
                 elements.messageList.innerHTML = `<p class="empty-state">Belum ada pesan. Mulai percakapan!</p>`;
+                return;
             }
-           
-            // ### FIX 3: Scroll to bottom reliably ###
-            // Only scroll if the user was already at the bottom, or if it's the initial load.
+            elements.messageList.innerHTML = '';
+            snapshot.forEach(async (child) => {
+                const msgId = child.key;
+                const msgData = child.val();
+                
+                if (msgData.deleted) {
+                    const deletedMsgElement = el('div', '', { class: 'message-wrapper received', id: `msg-${msgId}` });
+                    const bubble = el('div', '<p class="message-text"><em>Pesan ini telah dihapus.</em></p>', { class: 'message-bubble' });
+                    deletedMsgElement.append(bubble);
+                    elements.messageList.append(deletedMsgElement);
+                    return;
+                }
+                
+                const isMe = msgData.senderId === currentUser.uid;
+                const msgWrapper = el('div', '', { class: `message-wrapper ${isMe ? 'sent' : 'received'}`, id: `msg-${msgId}` });
+                const msgBubble = el('div', '', { class: 'message-bubble' });
+                
+                const senderInfo = allUsers[msgData.senderId] || { name: 'Pengguna Dihapus', role: '' };
+                const senderName = isMe ? 'Anda' : senderInfo.name;
+                const senderRole = msgData.senderRole || senderInfo.role;
+                const roleClass = (senderRole || '').replace(' ', '-');
+                
+                const headerHTML = `${senderName} <span class="role-badge role-${roleClass}" style="font-size: 1rem; vertical-align: middle;">${senderRole}</span>`;
+                const header = el('p', '', { class: 'message-header' });
+                header.innerHTML = headerHTML;
+                
+                msgBubble.append(header);
+
+                if (msgData.replyingToId) {
+                    const repliedMsgRef = ref(db, `chats/${activeChatId}/${msgData.replyingToId}`);
+                    const repliedMsgSnap = await get(repliedMsgRef);
+                    if (repliedMsgSnap.exists()) {
+                        const repliedMsg = repliedMsgSnap.val();
+                        if (!repliedMsg.deleted) {
+                            const isReplyingToSelf = repliedMsg.senderId === currentUser.uid;
+                            const repliedHeaderName = isReplyingToSelf ? 'Anda' : (allUsers[repliedMsg.senderId]?.name || 'Pengguna Dihapus');
+                            
+                            const repliedMessageDiv = el('div', '', {class: 'replied-message'});
+                            repliedMessageDiv.innerHTML = `<p class="replied-header">${repliedHeaderName}</p><p class="replied-text">${repliedMsg.text}</p>`;
+                            msgBubble.append(repliedMessageDiv);
+                        }
+                    }
+                }
+                
+                const text = el('div', '', { class: 'message-text' });
+                text.innerHTML = linkify(msgData.text);
+                const time = new Date(msgData.timestamp).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
+                const editedIndicator = msgData.edited ? '<span style="font-size: 1rem; opacity: 0.7; margin-left: 0.5rem;">(telah diedit)</span>' : '';
+                const footer = el('p', '', { class: 'message-footer' });
+                footer.innerHTML = time + editedIndicator;
+                
+                const actions = el('div', '', { class: 'message-actions' });
+                const replyBtn = el('button', '<i class="fas fa-reply"></i>', { class: 'btn-sm' });
+                replyBtn.onclick = () => setReplyingTo(msgId, msgData);
+                
+                const reportBtn = el('button', '<i class="fas fa-flag"></i>', { class: 'btn-sm warm' });
+                reportBtn.onclick = () => openReportModal(msgId, msgData);
+                
+                actions.append(replyBtn, reportBtn);
+
+                const isAdminOrSuperAdmin = currentUserData.role === 'admin' || currentUserData.role === 'super admin';
+
+                if (isMe) {
+                    const editBtn = el('button', '<i class="fas fa-edit"></i>', { class: 'btn-sm info' });
+                    editBtn.onclick = () => openEditModal(msgId, msgData);
+                    actions.append(editBtn);
+                }
+
+                if (isMe || isAdminOrSuperAdmin) {
+                    const deleteBtn = el('button', '<i class="fas fa-trash"></i>', { class: 'btn-sm danger' });
+                    deleteBtn.onclick = () => deleteMessage(msgId);
+                    actions.append(deleteBtn);
+                }
+                
+                msgBubble.append(text, footer, actions);
+                msgWrapper.append(msgBubble);
+                elements.messageList.append(msgWrapper);
+            });
             if (shouldScroll) {
                 elements.messageList.scrollTop = elements.messageList.scrollHeight;
             }
@@ -750,101 +768,14 @@ document.addEventListener('DOMContentLoaded', () => {
             sidebar.classList.remove('active');
         }
     }
-
-    // This new function's only job is to ASYNCHRONOUSLY create and RETURN a message element.
-    // It does NOT add it to the DOM. This is key to fixing the race condition.
-    async function createMessageElement(msgId, msgData) {
-        if (msgData.deleted) {
-             return null;
-        }
-
-        const isMe = msgData.senderId === currentUser.uid;
-        const msgWrapper = el('div', '', { class: `message-wrapper ${isMe ? 'sent' : 'received'}`, id: `msg-${msgId}` });
-        const msgBubble = el('div', '', { class: 'message-bubble' });
-        
-        // Handle normal message display
-        const senderInfo = allUsers[msgData.senderId] || { name: 'Pengguna Dihapus', role: '' };
-        const senderName = isMe ? 'Anda' : senderInfo.name;
-        const senderRole = msgData.senderRole || senderInfo.role;
-        const roleClass = (senderRole || '').replace(' ', '-');
-        
-        const headerHTML = `${senderName} <span class="role-badge role-${roleClass}" style="font-size: 1rem; vertical-align: middle;">${senderRole}</span>`;
-        const header = el('p', '', { class: 'message-header' });
-        header.innerHTML = headerHTML;
-        msgBubble.append(header);
-
-        // AWAIT reply data before continuing
-        if (msgData.replyingToId) {
-            const repliedMsgSnap = await get(ref(db, `chats/${activeChatId}/${msgData.replyingToId}`));
-            if (repliedMsgSnap.exists()) {
-                const repliedMsg = repliedMsgSnap.val();
-                if (!repliedMsg.deleted) {
-                    const isReplyingToSelf = repliedMsg.senderId === currentUser.uid;
-                    const repliedHeaderName = isReplyingToSelf ? 'Anda' : (allUsers[repliedMsg.senderId]?.name || 'Pengguna Dihapus');
-                    
-                    const repliedMessageDiv = el('div', '', {class: 'replied-message'});
-                    repliedMessageDiv.innerHTML = `<p class="replied-header">${repliedHeaderName}</p><p class="replied-text">${repliedMsg.text}</p>`;
-                    msgBubble.append(repliedMessageDiv);
-                }
-            }
-        }
-        
-        const text = el('div', '', { class: 'message-text' });
-        text.innerHTML = linkify(msgData.text);
-        const time = new Date(msgData.timestamp).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
-        const editedIndicator = msgData.edited ? '<span style="font-size: 1rem; opacity: 0.7; margin-left: 0.5rem;">(telah diedit)</span>' : '';
-        const footer = el('p', '', { class: 'message-footer' });
-        footer.innerHTML = time + editedIndicator;
-        
-        const actions = el('div', '', { class: 'message-actions' });
-        const replyBtn = el('button', '<i class="fas fa-reply"></i>', { class: 'btn-sm' });
-        replyBtn.onclick = () => setReplyingTo(msgId, msgData);
-        
-        const reportBtn = el('button', '<i class="fas fa-flag"></i>', { class: 'btn-sm warm' });
-        reportBtn.onclick = () => openReportModal(msgId, msgData);
-        
-        actions.append(replyBtn, reportBtn);
-
-        const isAdminOrSuperAdmin = currentUserData.role === 'admin' || currentUserData.role === 'super admin';
-
-        if (isMe) {
-            const editBtn = el('button', '<i class="fas fa-edit"></i>', { class: 'btn-sm info' });
-            editBtn.onclick = () => openEditModal(msgId, msgData);
-            actions.append(editBtn);
-        }
-
-        if (isMe || isAdminOrSuperAdmin) {
-            const deleteBtn = el('button', '<i class="fas fa-trash"></i>', { class: 'btn-sm danger' });
-            deleteBtn.onclick = () => deleteMessage(msgId, msgData);
-            actions.append(deleteBtn);
-        }
-
-        msgBubble.append(text, footer, actions);
-        msgWrapper.append(msgBubble);
-
-        return msgWrapper; // Return the finished element
-    }
-    // =================================================================
-    // END OF BUG FIX AREA
-    // =================================================================
     
-    // ### NEW FEATURE: HARD DELETE ###
-    async function deleteMessage(msgId, msgData) {
-        const isMe = msgData.senderId === currentUser.uid;
-        const isAdminOrSuperAdmin = currentUserData.role === 'admin' || currentUserData.role === 'super admin';
-        
-        if (!isMe && !isAdminOrSuperAdmin) {
-            alert('Anda tidak memiliki izin untuk menghapus pesan ini.');
-            return;
-        }
-
-        if (!confirm('Apakah Anda yakin ingin menghapus pesan ini secara permanen? Aksi ini tidak dapat dibatalkan.')) {
-            return;
-        }
-
+    async function deleteMessage(msgId) {
+        if (!confirm('Apakah Anda yakin ingin menghapus pesan ini?')) return;
         try {
-            // This sets the message data to null, effectively deleting it from the database.
-            await set(ref(db, `chats/${activeChatId}/${msgId}`), null);
+            await update(ref(db, `chats/${activeChatId}/${msgId}`), {
+                deleted: true,
+                text: 'Pesan ini telah dihapus.'
+            });
         } catch (error) {
             console.error("Error deleting message:", error);
             alert("Gagal menghapus pesan.");
@@ -1145,11 +1076,22 @@ document.addEventListener('DOMContentLoaded', () => {
         elements.chatPermissionsModal.style.display = 'none';
     }
 
-    // [MODIFIED] setupEventListeners function
     function setupEventListeners() {
-        // [FIX] Changed event listener to call renderChatLists
-        elements.searchGroup.addEventListener('input', () => renderChatLists(allGroups));
-        elements.searchUser.addEventListener('input', () => renderChatLists(allGroups));
+        elements.searchGroup.addEventListener('input', (e) => {
+            const searchTerm = e.target.value.toLowerCase();
+            document.querySelectorAll('#group-list li').forEach(item => {
+                const groupName = item.textContent.toLowerCase();
+                item.style.display = groupName.includes(searchTerm) ? '' : 'none';
+            });
+        });
+
+        elements.searchUser.addEventListener('input', (e) => {
+            const searchTerm = e.target.value.toLowerCase();
+            document.querySelectorAll('#user-list li').forEach(item => {
+                const userName = item.textContent.toLowerCase();
+                item.style.display = userName.includes(searchTerm) ? '' : 'none';
+            });
+        });
 
         elements.messageForm.addEventListener('submit', (e) => {
             e.preventDefault();
