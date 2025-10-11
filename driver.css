@@ -168,8 +168,8 @@ hr {
   color: var(--text-link);
 }
 .tab-link.active {
-  background-color: var(--bg-main);
-  color: var(--text-primary);
+  background-color: var(--blue);
+  color: var(--text-inverse);
   border-color: var(--border-color);
 }
 .tab-content { display: none; }
