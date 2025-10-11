@@ -1383,7 +1383,7 @@ body.light-mode .replied-text { color: var(--slate-gray); opacity: 1; }
     }
     
     .main-wrapper {
-        border-radius: 1rem;
+        border-radius: 0;
     }
     
     .main-content {
