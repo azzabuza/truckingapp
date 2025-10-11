@@ -210,9 +210,12 @@ input{
   background: var(--bg-card);
   border: 1px solid var(--border-color);
   border-radius: 1rem;
-  margin-bottom: 2rem;
+  margin: 0 0 2rem;
   padding: 2rem;
   transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+.trip-card:last-child {
+  margin: 0;
 }
 .trip-card-header {
   display: flex;
